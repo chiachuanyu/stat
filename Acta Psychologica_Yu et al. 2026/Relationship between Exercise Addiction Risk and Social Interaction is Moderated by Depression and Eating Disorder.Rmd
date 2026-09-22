@@ -1,0 +1,334 @@
+---
+title: "Relationship between Exercise Addiction Risk and Social Interaction is Moderated by Depression and Eating Disorder"
+author: "Chia-Chuan Yu, Ph.D."
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+This is the 1st study in my dissertation, supervised by Darla Castelli, Ph.D. We investigated the associations between exercise addiction (EA) and three domains of social interaction (i.e., social support[ss], perceived discrimination[dis], fear of missing out [FoMO], and the importance of social reward[sr]) among young adults in Austin, TX. Furthermore, we examined whther these relationships are moderated by the symptoms of depression and eating disorder, which are the two common comorbidities of EA.
+
+```{r include=FALSE}
+library(readxl)
+library(writexl)
+library(dplyr)
+library(mice)
+library(MVN)
+library(psych)
+library(tableone)
+library(ggcorrplot2)
+library(ggplot2)
+library(jtools)
+library(interactions)
+library(patchwork)
+library(effects)
+library(emmeans)
+library(ppcor)
+```
+
+# Data imputation
+This step is skipped because I've already done the imputation, which took a long time to run.
+```{r}
+# df <- read_excel(path = "/Users/chia-chuanyu/Desktop/dissertationData/study1/study1_organizedFinal.xlsx",
+#                  sheet = "organized_forImputation")
+# column_names <- c('eai1', 'eai2', 'eai3', 'eai4', 'eai5', 'eai6',
+#               'idea81', 'idea82', 'idea83', 'idea84', 'idea85', 'idea86', 'idea87', 'idea88',
+#               'ipaqsf_vigMET', 'ipaqsf_modMET', 'ipaqsf_walkMET', 'ipaqsf_sit',
+#               'edeqs1', 'edeqs2', 'edeqs3', 'edeqs4', 'edeqs5', 'edeqs6', 'edeqs7', 'edeqs8', 'edeqs9', 'edeqs10', 'edeqs11', 'edeqs12',
+#               'phq1', 'phq2', 'phq3', 'phq4', 'phq5', 'phq6', 'phq7', 'phq8', 'phq10',
+#               'mosss1', 'mosss2', 'mosss3', 'mosss4', 'mosss5', 'mosss6', 'mosss7', 'mosss8', 'mosss9', 'mosss10', 'mosss11', 'mosss12',
+#               'mosss13', 'mosss14', 'mosss15', 'mosss16', 'mosss17', 'mosss18', 'mosss19',
+#               'srq1', 'srq2', 'srq3', 'srq4', 'srq5', 'srq6', 'srq7', 'srq8', 'srq9', 'srq10', 'srq11', 'srq12', 'srq13', 'srq14', 'srq15',
+#               'srq16', 'srq17', 'srq18', 'srq19', 'srq20', 'srq21', 'srq22', 'srq23',
+#               'fomos1', 'fomos2', 'fomos3', 'fomos4', 'fomos5', 'fomos6', 'fomos7', 'fomos8', 'fomos9', 'fomos10',
+#               'everyDiscrimiS1a','everyDiscrimiS2a', 'everyDiscrimiS3a', 'everyDiscrimiS4a', 'everyDiscrimiS5a')
+# # Only include the specified columns and replaced 999 with NA
+# df <- df[, column_names]
+# df[df == 999] <- NA
+# 
+# # Define the imputation methods for each variable
+# imp_methods <- make.method(df)
+# # Predictive mean matching (pmm) method for continuous variables 
+# imp_methods[column_names] <- "pmm"
+# 
+# # Imputation
+# imp_data <- mice(df, m = 5, maxit = 50, method = imp_methods, seed = 500)
+# completed_data <- complete(imp_data)
+# write_xlsx(completed_data, path = "/Users/chia-chuanyu/Library/Mobile Documents/com~apple~CloudDocs/Chuan's Macbook Pro/My Ph.D/UT Austin/Research/Dissertation/publications/study1_onlineSurvey/final_imputed.xlsx")
+# head(completed_data)
+```
+
+# Multivariate normality and outlier detection
+Data violated multivariate normality assumption, thus in hypothesis testing we used log transformation after removing outliers.
+```{r}
+# Test multivariate normality
+data <- read_excel("/Users/chia-chuanyu/Desktop/dissertationData/study1/study1_organizedFinal.xlsx", sheet = "finalForAnalyze")
+# vars <- c('eai', 'edeqs', 'phq_9', 'mossss_overallSupportIndex', 'srq', 'fomos', 'everyDiscrimiS')
+vars <- c('sex', 'eai', 'edeqs', 'phq_9', 'ipaqsf_totalMET', 'mossss_overallSupportIndex', 'srq', 'fomos', 'everyDiscrimiS')
+data <- data[vars]
+data_mn1 <- mvn(data, mvn_test = "mardia", scale = TRUE, descriptives = TRUE, bootstrap = TRUE, B = 10000)
+summary(data_mn1)
+
+# Outliers detection with Mahalanobis distance before log transformation
+distances <- mahalanobis(data, colMeans(data), cov(data))
+threshold <- qchisq(0.99, df = ncol(data))  # 99% CI (i.e., only remove extreme individuals)
+outliers <- which(distances > threshold)
+print(outliers)
+print(length(outliers))
+data_no_outliers <- data[-outliers, ]
+
+# Test multivariate normality again
+data_mn2 <- mvn(data_no_outliers, mvn_test = "mardia", scale = TRUE, descriptives = TRUE, bootstrap = TRUE, B = 10000)
+summary(data_mn2)
+
+# Print variables with 0 values, which are added by 1 in log transformation
+colSums(data_no_outliers[, vars] == 0, na.rm = TRUE) > 0
+
+# Check multivariate normality after log transformation, just check.
+data_clean <- data_no_outliers %>%
+  mutate(
+    eai  = log(eai),
+    edeqs = log(edeqs + 1),
+    phq_9 = log(phq_9 + 1),
+    ipaqsf_totalMET = log(ipaqsf_totalMET + 1),
+    mossss_overallSupportIndex = log(mossss_overallSupportIndex),
+    srq  = log(srq),
+    fomos = log(fomos),
+    everyDiscrimiS = log(everyDiscrimiS + 1)
+  )
+
+data_clean$eai <- scale(data_clean$eai)
+data_clean$edeqs <- scale(data_clean$edeqs)
+data_clean$phq_9 <- scale(data_clean$phq_9)
+data_clean$ipaqsf_totalMET <- scale(data_clean$ipaqsf_totalMET)
+data_clean$mossss_overallSupportIndex <- scale(data_clean$mossss_overallSupportIndex)
+data_clean$srq <- scale(data_clean$srq)
+data_clean$fomos <- scale(data_clean$fomos)
+data_clean$everyDiscrimiS <- scale(data_clean$everyDiscrimiS)
+
+data_mn3 <- mvn(data_clean, mvn_test = "mardia", scale = TRUE, descriptives = TRUE, bootstrap = TRUE, B = 10000)
+summary(data_mn3)
+```
+
+# Sample characteristics
+Note that the values here are raw data after outlier removal.
+```{r}
+# Load the data again, as some variables were not included in normality and outlier detection steps.
+data_des <- read_excel("/Users/chia-chuanyu/Desktop/dissertationData/study1/study1_organizedFinal.xlsx", sheet = "finalForAnalyze")
+data_des <- data_des[-outliers, ]
+catVars <- c("sex", "race", 'gender', 'ethnicity', 'selfDegree', 'marry', 'selfIncome', 'employment', 'past6monthAthleticCompetition', 'everAthleticCompetition')
+CreateTableOne(data = data_des, vars = catVars, factorVars = catVars)
+
+conVars <- c('age', 'ipaqsf_totalMET', 'eai', 'edeqs', 'phq_9', 'mossss_overallSupportIndex', 'srq', 'fomos', 'everyDiscrimiS')
+describe(data_des[, conVars])
+
+print("The # and % of people with EAI score ≥ 29 (the cutoff for high-risk by Szabo, A., Pinto, A., Griffiths, M. D., Kovacsik, R., & Demetrovics, Z. (2019). The psychometric evaluation of the Revised Exercise Addiction Inventory: Improved psychometric properties by changing item response rating. Journal of Behavioral Addictions, 8(1), 157-161.)")
+print(sum(data_des$eai >= 29, na.rm = TRUE))
+print((sum(data_des$eai >= 29, na.rm = TRUE)) / sum(!is.na(data_des$eai)))
+```
+
+# Simple Correlation for EA
+No p-value adjestment becasue we are exploring the data.\
+Spearman is used becasue the data violated multivariate normality.
+```{r corr-plot, fig.width=10, fig.height=8}
+# Specify vars again, since we don't use sex in correlation, which was used in outlier detection.
+vars <- c('eai', 'edeqs', 'phq_9', 'mossss_overallSupportIndex', 'srq', 'fomos', 'everyDiscrimiS', 'ipaqsf_totalMET')
+corr <- corr.test(
+  data_clean[, c(vars)],
+  use = "pairwise", method = "spearman", adjust = "none")
+new_labels <- c("EA", "ED", "Depress", "SS", "SR", "FoMO", "Discrim", "PA")
+rownames(corr$r) <- new_labels
+colnames(corr$r) <- new_labels
+rownames(corr$p) <- new_labels
+colnames(corr$p) <- new_labels
+corr$stars
+
+p <- ggcorrplot.mixed(corr$r, upper = "ellipse", p.mat = corr$p, insig = "label_sig", sig.lvl = c(.05, .01, .001))
+col1 <- colorRampPalette(c("#00007F", "blue", "#007FFF", "#FF7F00", "red", "#7F0000"))
+p <- p + scale_fill_gradientn(colours = col1(10), limits = c(-1, 1),
+  guide = guide_colorbar(direction = "horizontal", title = "", nbin = 1000,
+  ticks.colour = "black", frame.colour = "black", barwidth = 15, barheight = 1.5)) +
+  scale_colour_gradientn(colours = col1(10), limits = c(-1, 1),
+  guide = guide_colorbar(direction = "horizontal", title = "", nbin = 1000,
+  ticks.colour = "black", frame.colour = "black", barwidth = 15, barheight = 1.5)) +
+  #ggtitle("Spearman Correlation between Variables") +
+  theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
+p
+ggsave(filename = "correlation_plot.png", plot = p, width = 7, height = 7, dpi = 300)
+
+# Our non-parametric correlation showed that EA is positively correlated with eating disorder, depression, social reward, fear of missing out, perceived discrimination, and physical activity.
+```
+
+# Partial Correlation for PA
+```{r}
+paVars <- c("eai", "mossss_overallSupportIndex", "srq", "fomos", "everyDiscrimiS")
+covariates <- c("sex", "edeqs", "phq_9")
+
+results <- data.frame("Social-PA Correlations when Controlling for Covariates" = paVars, Partial_r = NA, p_value = NA)
+
+for (i in seq_along(paVars)) {
+  df_subset <- data_clean[, c("ipaqsf_totalMET", paVars[i], covariates)]
+  pcor_res <- pcor(df_subset, method = "spearman")
+  results$Partial_r[i] <- pcor_res$estimate[1, 2]
+  results$p_value[i] <- pcor_res$p.value[1, 2]
+}
+results
+```
+
+# Log transformation and scaling
+```{r}
+# data_clean <- data_clean %>%
+#   mutate(
+#     eai  = log(eai),
+#     edeqs = log(edeqs + 1),
+#     phq_9 = log(phq_9 + 1),
+#     ipaqsf_totalMET = log(ipaqsf_totalMET + 1),
+#     mossss_overallSupportIndex = log(mossss_overallSupportIndex),
+#     srq  = log(srq),
+#     fomos = log(fomos),
+#     everyDiscrimiS = log(everyDiscrimiS + 1)
+#   )
+# data_clean$eai <- scale(data_clean$eai)
+# data_clean$edeqs <- scale(data_clean$edeqs)
+# data_clean$phq_9 <- scale(data_clean$phq_9)
+# data_clean$ipaqsf_totalMET <- scale(data_clean$ipaqsf_totalMET)
+# data_clean$mossss_overallSupportIndex <- scale(data_clean$mossss_overallSupportIndex)
+# data_clean$srq <- scale(data_clean$srq)
+# data_clean$fomos <- scale(data_clean$fomos)
+# data_clean$everyDiscrimiS <- scale(data_clean$everyDiscrimiS)
+```
+
+# Hypothesis testing for social support (SS)
+```{r}
+model.ss <- lm(eai ~ mossss_overallSupportIndex + sex + ipaqsf_totalMET + phq_9 + edeqs +
+                 mossss_overallSupportIndex*edeqs, data = data_clean)
+summary(model.ss)
+print(lm.beta::lm.beta(model.ss))
+print(confint(model.ss))
+
+p1 <- interact_plot(model.ss, pred = "mossss_overallSupportIndex", modx = "edeqs",
+                    x.label = "Social Support", y.label = "EA Risk", interval = TRUE,
+                    colors = c("#0072B2", "#E69F00", "#009E73")) +
+                    theme_classic(base_size = 12) + theme(legend.position = "none")
+p1
+```
+
+# Hypothesis testing for social reward (SR)
+```{r}
+model.sr <- lm(eai ~ srq + sex + ipaqsf_totalMET + phq_9 + edeqs + 
+                   srq*edeqs, data = data_clean)
+summary(model.sr)
+print(lm.beta::lm.beta(model.sr))
+print(confint(model.sr))
+sim_slopes(model.sr, pred = srq, modx = edeqs)
+
+p2 <- interact_plot(model.sr, pred = "srq", modx = "edeqs",
+                    x.label = "Social Reward", y.label = "EA Risk", interval = TRUE, legend.main = "Eating Disorder Symptoms",
+                    colors = c("#0072B2", "#E69F00", "#009E73")) +
+                    theme_classic(base_size = 12)
+p2
+```
+
+# Hypothesis testing for fear of missing out (fomos)
+```{r}
+model.fomos <- lm(eai ~ fomos + sex + ipaqsf_totalMET + phq_9 + edeqs + 
+                   fomos*edeqs, data = data_clean)
+summary(model.fomos)
+print(lm.beta::lm.beta(model.fomos))
+print(confint(model.fomos))
+sim_slopes(model.fomos, pred = fomos, modx = edeqs)
+
+p3 <- interact_plot(model.fomos, pred = "fomos", modx = "edeqs",
+                    x.label = "Fear of Missing Out", y.label = "EA Risk", interval = TRUE,
+                    colors = c("#0072B2", "#E69F00", "#009E73")) +
+                    theme_classic(base_size = 12) + theme(legend.position = "none")
+p3
+```
+
+# Hypothesis testing for discrimination (dis)
+```{r}
+model.dis <- lm(eai ~ everyDiscrimiS + sex + ipaqsf_totalMET + phq_9 + edeqs + 
+                   everyDiscrimiS*edeqs, data = data_clean)
+summary(model.dis)
+print(lm.beta::lm.beta(model.dis))
+print(confint(model.dis))
+sim_slopes(model.dis, pred = everyDiscrimiS, modx = edeqs)
+
+p4 <- interact_plot(model.dis, pred = "everyDiscrimiS", modx = "edeqs",
+                    x.label = "Perceived Discrimination", y.label = "EA Risk", interval = TRUE,
+                    colors = c("#0072B2", "#E69F00", "#009E73")) +
+                    theme_classic(base_size = 12) + theme(legend.position = "none")
+p4
+```
+
+# Combine all regression plots
+```{r}
+combined_plot <- (p1 | p2) / (p3 | p4) +plot_annotation(tag_levels = "a", tag_prefix = "(", tag_suffix = ")")
+combined_plot
+ggsave("interaction_plots.png", plot = combined_plot, width = 10,height = 7, units = "in", dpi = 300)
+```
+
+# FDR Correction
+Since We have fours models, we need to apply FDR to control for inflated Type I error.
+```{r}
+p_values <- c(#summary(model.ss)$coefficients["mossss_overallSupportIndex", "Pr(>|t|)"],
+              summary(model.ss)$coefficients["mossss_overallSupportIndex:edeqs", "Pr(>|t|)"],
+              #summary(model.sr)$coefficients["srq", "Pr(>|t|)"],
+              summary(model.sr)$coefficients["srq:edeqs", "Pr(>|t|)"],
+              #summary(model.fomos)$coefficients["fomos", "Pr(>|t|)"],
+              summary(model.fomos)$coefficients["fomos:edeqs", "Pr(>|t|)"],
+              #summary(model.dis)$coefficients["everyDiscrimiS", "Pr(>|t|)"],
+              summary(model.dis)$coefficients["everyDiscrimiS:edeqs", "Pr(>|t|)"])
+adjusted_p_values <- p.adjust(p_values, method = "fdr")
+# Below are the fdr-corrected p values for the interactions of SS*ED, SR*ED, FoMOS*ED, and Dis*ED
+adjusted_p_values
+
+print("mossss_overallSupportIndex:edeqs")
+confint(emmeans(model.ss, ~ mossss_overallSupportIndex*edeqs), adjust = "fdr")
+print("srq:edeqs")
+confint(emmeans(model.sr, ~ srq*edeqs), adjust = "fdr")
+print("fomos:edeqs")
+confint(emmeans(model.fomos, ~ fomos*edeqs), adjust = "fdr")
+print("everyDiscrimiS:edeqs")
+confint(emmeans(model.dis, ~ everyDiscrimiS*edeqs), adjust = "fdr")
+```
+
+# Supplementary Analysis Examining the Relationships between PA and Social Interaction Dimensions
+```{r}
+print("PA-Social Support Relationship")
+model.pa.ss <- lm(ipaqsf_totalMET ~ mossss_overallSupportIndex + sex + eai + phq_9 + edeqs +
+                    mossss_overallSupportIndex*edeqs, data = data_clean)
+summary(model.pa.ss)
+print(lm.beta::lm.beta(model.pa.ss))
+print(confint(model.pa.ss))
+
+print("PA-Social Reward Relationship")
+model.pa.sr <- lm(ipaqsf_totalMET ~ srq + sex + eai + phq_9 + edeqs + srq*edeqs, data = data_clean)
+summary(model.pa.sr)
+print(lm.beta::lm.beta(model.pa.sr))
+print(confint(model.pa.sr))
+
+print("PA-FoMO Relationship")
+model.pa.fomos <- lm(ipaqsf_totalMET ~ fomos + sex + eai + phq_9 + edeqs + fomos*edeqs, data = data_clean)
+summary(model.pa.fomos)
+print(lm.beta::lm.beta(model.pa.fomos))
+print(confint(model.pa.fomos))
+
+print("PA-Discrimination Relationship")
+model.pa.dis <- lm(ipaqsf_totalMET ~ everyDiscrimiS + sex + eai + phq_9 + edeqs + everyDiscrimiS*edeqs, data = data_clean)
+summary(model.pa.dis)
+print(lm.beta::lm.beta(model.pa.dis))
+print(confint(model.pa.dis))
+```
+
+# Conclusion
+* When covariates were considered, we found that EA was significantly correlated with greater FoMO and perceived discrimination only when eating disorder symptoms were high.
+ - These ED-social interactions remained significant after FDR correction.
+* When covariates were considered, we found that PA was not correlated with any dimension of social interaction.
