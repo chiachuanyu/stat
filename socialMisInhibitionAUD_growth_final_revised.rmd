@@ -1,0 +1,1181 @@
+---
+title: "Social Mistreatment and Alcohol Use Problem Trajectories: The Moderating Effects of Brain Network Activations during the Stop Signal Task"
+output:
+    html_document:
+        toc: true
+        toc_float: true
+---
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = 'C:/Users/ch.yu/OneDrive - University of Florida/Desktop/LIA_sst_resilience')
+knitr::opts_chunk$set(echo = TRUE)
+options(width = 300)
+suppressMessages(library(readr))
+suppressMessages(library(dplyr))
+suppressMessages(library(readxl))
+suppressMessages(library(ggplot2))
+suppressMessages(library(corrplot))
+suppressMessages(library(ggpubr))
+suppressMessages(library(scales))
+suppressMessages(library(stringr))
+suppressMessages(library(MASS))
+suppressMessages(library(foreign))
+suppressMessages(library(lmtest))
+suppressMessages(library(mediation))
+suppressMessages(library(PerformanceAnalytics))
+suppressMessages(library(tidyr))
+suppressMessages(library(interactions))
+suppressMessages(library(lme4))
+suppressMessages(library(lmerTest))
+suppressMessages(library(performance))
+suppressMessages(library(psychometric))
+suppressMessages(library(psych))
+suppressMessages(library(nlme))
+suppressMessages(library(naniar))
+suppressMessages(library(stats))
+suppressMessages(library(Hmisc))
+suppressMessages(library(reghelper))
+suppressMessages(library(emmeans))
+suppressMessages(library(jtools))
+suppressMessages(library(corrgram))
+suppressMessages(library(tidyverse))
+suppressMessages(library(htmlTable))
+suppressMessages(library(scipub))
+suppressMessages(library(broom.mixed))
+suppressMessages(library(rlang))
+suppressMessages(library(ppcor))
+suppressMessages(library(car))
+suppressMessages(library(effsize))
+suppressMessages(library(metan))
+suppressMessages(library(r2mlm))
+suppressMessages(library(MuMIn))
+suppressMessages(library(JWileymisc))
+suppressMessages(library(kableExtra))
+```
+
+# Intro
+## Background
+The risk for alcohol use disorder (AUD) is related to increased adverse life experiences such as social mistreatment. On the other hand, cognitive control is fundamental to facilitate self-control and psychological resilience, and has been proposed as a protector for AUD. However, the neural mechanism underlying the longitudinal association between these constructs remains unclear. This study examined the relationship between social mistreatment and the trajectories of alcohol use problem, while determining the moderating role of motor inhibition and error processing, which are the two important elements of cognitive control, using questionnaires, Stop Signal Task, and fMRI. In our preliminary analyses where we examined the relationship between AUDIT and social experiences and the moderation of inhibition (without modeling the trajectories). It seems that they might not relate to each other when we look at the data by separate waves of data collection. However, there are significant effects of social experiences and moderation of inhibition when we used ΔAUDIT as the outcome variable. Therefore, it is worth of trying to run HLM to model the slope of AUDIT.
+
+## RQ
+- Does social mistreatment predict the trajectories of alcohol problem in young adults?
+- Does inhibitory control and error processing moderate the relationship between social mistreatment and the trajectories of alcohol problem in young adults?
+
+## Hypothesis
+- Social mistreatment is related to a greater increase of AUDIT score over time (i.e., steeper slope).
+- Faster stop signal reaction time (SSRT) and greater post-error slowing (PES) are related mitigate the impact of social mistreatment on the AUDIT slope.
+- Increased brain network activations of inhibition and error processing mitigate the impact of social mistreatment on the AUDIT slope.
+
+## Methods
+This is a longitudinal study where participants completed questionnaires and a Stop Signal Task during fMRI scanning at baseline (T0), and completed three yearly follow-up surveys (T1-T3). At baseline, the participants are all freshmen students in South Carolina; baseline n = 144, 1st follow-up n = 114, 2nd follow-up n = 83, 3rd follow-up n = 78. Exclusion criteria: 1) incomplete Stop Signal Task or fMRI data, 2) incomplete questionnaire data at baseline. All participants are right-handed. The fMRI data has been preprocessed and group-level comparisons were conducted: successful stop vs. go (SS-GO) and SS vs. failed stop (SS-FS) was completed (based on p = .001, cluster size = 31).<br>
+
+The current study oprationalized inhibition as SSRT and brain network activations during the Stop Signal Task based on the atlas of Power et al. (2011), which has 13 networks including 1. Sensory/somatomotor Hand, 2. Sensory/somatomotor Mouth, 3. Cingulo-opercular Task Control, 4. Auditory, 5. Default mode, 6. Memory retrieval?, 7. Visual, 8. Fronto-parietal Task Control, 9. Salience, 10. Subcortical, 11. Ventral attention, 12. Dorsal attention, and 13. Cerebellar. The activations in these networks were calculated as the betas of "successful stop - go" contrast averaged in each network.<br>
+
+We used the hierachical linear modeling approach to build linear growth models. Item-wise missing data within each questionnaire was interpolated with mean values if the response rate of that questionnaire is >= 50%; otherwise, the composite score was written as missing value (i.e., 9999).
+
+### What we have tried in the previous analyses
+We identified ROIs in the ss_stop-go contrast via 1) narrowing the significant level to p-value to 0.0000001 (cluster size still set as 31), 2) searching for the clusters where their peaks are located in inhibition areas based on the literature (i.e., IFG and insula), 3) looking at the coordinates of peak signals in those clusters, and 4) creating masks with a 10-mm radius sphere around these peaks. Four ROIs were identified (see the bolded ROIs below), which cover rIFG, lIFG, right insula, and left insula. Additionally, we also ran a correlation between SSRT and ss_stop-go contrast, and clusters of right (+19.5, +39.5, +51.5) and left SFG (-16.5, +55.5, +35.5) were identified (p = .001, cluster size = 31).<br>
+
+**Peak coordinates (order: LPI)**<br>
+**p = .0000001, cluster = 31**<br>
+**+55.5 +17.5 +31.5: rIFG, rMiddleFG, right precentralG** (this site survives even after clustering size 500)<br>
+**-54.5 +13.5 +33.5: lIFG, lMiddleFG, left precentralG** (this site survives even after clustering size 500)<br>
+**+49.5 +19.5 -8.5: rIFG, rInsula, rTemporal pole**<br>
+**-48.5 +19.5 -8.5: lIFG, lTemporal pole** (this was also included in our analysis to represent left insula, although the coordinate of the peak is not exactly on left insula)<br>
++29.5 +55.5 +29.5: rSFG, rMiddleFG<br>
+-30.5 +1.5 +67.5: lSFG, left precentralG<br>
+-0.5 -30.5 +27.5: lPCC, lPCC, lMiddle CC, lMiddle CC<br>
++63.5 +7.5 +27.5: rIFG, right precentralG<br>
+**p = .0000001, cluster = 500**<br>
++55.5 +17.5 +31.5: rIFG, rMiddleFG, right precentralG<br>
+-54.5 +13.5 +33.5: lIFG, rMiddleFG, right precentralG<br><br>
+
+We also tried the network activations using the atlas from Yeo et al. (2011), which has 7-network and 17-network versions of segmentation. We ended up with Power's 13-network atlas since it gives similar results as Yeo's and has a medium number of networks compared to Yeo's 7 and 17 networks.
+
+# Data preparation and quick check
+```{r}
+# df <- read_excel('lia1.xlsx', col_names = TRUE, sheet = 'sstTemp')
+df <- read_excel('lia1.xlsx', col_names = TRUE, sheet = 'sstTemp')
+df <- df[,!names(df) %in% c("mriID_T1", "mriID_T2", "mriID_T3")]
+df <- df %>%
+  rename(AUDIT_T0 = auditTotal_T0, AUDIT_T1 = auditTotal_T1, AUDIT_T2 = auditTotal_T2, AUDIT_T3 = auditTotal_T3, SocialMis_T0 = ICSRLE_generalSocialMistreatment_T0, SocialMis_T1 = ICSRLE_generalSocialMistreatment_T1, SocialMis_T2 = ICSRLE_generalSocialMistreatment_T2, SocialMis_T3 = ICSRLE_generalSocialMistreatment_T3, NegLife_T0 = ICSRLE_total_T0, NegLife_T1 = ICSRLE_total_T1, NegLife_T2 = ICSRLE_total_T2, NegLife_T3 = ICSRLE_total_T3, NegLife_other_T0 = ICSRLE_other_T0, NegLife_other_T1 = ICSRLE_other_T1, NegLife_other_T2 = ICSRLE_other_T2, NegLife_other_T3 = ICSRLE_other_T3, AdChild = ACE_totalCorrected, CDRISC_Resilience = connorDavidsonResilienceScaleTotal, SUPPS_Impulsive = SUPPS_impulsiveBehaviorTotalCorrected, BIS_Impulsive = barrattImpulsivenessTotalCorrected, stateAnxiety = stateAnxietyInventoryCorrected, traitAnxiety = traitAnxietyInventoryCorrect, BDI_depression = bdiCorrected,
+         GoAcc = goAcc, GoRT = goRT, StopAcc = stopAcc, SSD = ssd, SSRT = ssrt, go_subcortical = go_network_13_10,
+
+         ss_somatomotorHand = ss_net_13_1, ss_somatomotorMouth = ss_net_13_2, ss_cinguloOpercularTaskControl = ss_net_13_3, ss_auditory = ss_net_13_4, ss_default = ss_net_13_5, ss_memoryRetrieval = ss_net_13_6, ss_visual = ss_net_13_7, ss_frontoParietalTaskControl =	ss_net_13_8, ss_salience =	ss_net_13_9, ss_subcortical =	ss_net_13_10, ss_ventralAttention = ss_net_13_11, ss_dorsalAttention =	ss_net_13_12, ss_cerebellar = ss_net_13_13,
+
+         fs_somatomotorHand = fs_net_13_1, fs_somatomotorMouth = fs_net_13_2, fs_cinguloOpercularTaskControl = fs_net_13_3, fs_auditory = fs_net_13_4, fs_default = fs_net_13_5, fs_memoryRetrieval = fs_net_13_6, fs_visual = fs_net_13_7,fs_frontoParietalTaskControl =	fs_net_13_8,	fs_salience = fs_net_13_9, fs_subcortical = fs_net_13_10, fs_ventralAttention = fs_net_13_11, fs_dorsalAttention = fs_net_13_12, fs_cerebellar = fs_net_13_13,
+
+         ssgo_somatomotorHand = ss_go_net_13_1, ssgo_somatomotorMouth = ss_go_net_13_2, ssgo_cinguloOpercularTaskControl = ss_go_net_13_3, ssgo_auditory = ss_go_net_13_4, ssgo_default = ss_go_net_13_5, ssgo_memoryRetrieval = ss_go_net_13_6, ssgo_visual = ss_go_net_13_7, ssgo_frontoParietalTaskControl = ss_go_net_13_8, ssgo_salience = ss_go_net_13_9, ssgo_subcortical = ss_go_net_13_10, ssgo_ventralAttention = ss_go_net_13_11, ssgo_dorsalAttention = ss_go_net_13_12, ssgo_cerebellar = ss_go_net_13_13,
+
+         ssfs_somatomotorHand = ssfs_net_13_1, ssfs_somatomotorMouth = ssfs_net_13_2, ssfs_cinguloOpercularTaskControl = ssfs_net_13_3, ssfs_auditory = ssfs_net_13_4, ssfs_default = ssfs_net_13_5, ssfs_memoryRetrieval = ssfs_net_13_6, ssfs_visual = ssfs_net_13_7, ssfs_frontoParietalTaskControl = ssfs_net_13_8, ssfs_salience = ssfs_net_13_9, ssfs_subcortical = ssfs_net_13_10, ssfs_ventralAttention = ssfs_net_13_11, ssfs_dorsalAttention = ssfs_net_13_12, ssfs_cerebellar = ssfs_net_13_13,
+
+         fsgo_somatomotorHand = fsgo_net_13_1, fsgo_somatomotorMouth = fsgo_net_13_2, fsgo_cinguloOpercularTaskControl = fsgo_net_13_3, fsgo_auditory = fsgo_net_13_4, fsgo_default = fsgo_net_13_5, fsgo_memoryRetrieval = fsgo_net_13_6, fsgo_visual = fsgo_net_13_7, fsgo_frontoParietalTaskControl = fsgo_net_13_8, fsgo_salience = fsgo_net_13_9, fsgo_subcortical = fsgo_net_13_10, fsgo_ventralAttention = fsgo_net_13_11, fsgo_dorsalAttention = fsgo_net_13_12, fsgo_cerebellar = fsgo_net_13_13,
+
+         pfs_go_somatomotorHand = pfs_go_net_13_1, pfs_go_somatomotorMouth = pfs_go_net_13_2, pfs_go_cinguloOpercularTaskControl = pfs_go_net_13_3, pfs_go_auditory = pfs_go_net_13_4, pfs_go_default = pfs_go_net_13_5, pfs_go_memoryRetrieval = pfs_go_net_13_6, pfs_go_visual = pfs_go_net_13_7, pfs_go_frontoParietalTaskControl = pfs_go_net_13_8, pfs_go_salience = pfs_go_net_13_9, pfs_go_subcortical = pfs_go_net_13_10, pfs_go_ventralAttention = pfs_go_net_13_11, pfs_go_dorsalAttention = pfs_go_net_13_12, pfs_go_cerebellar = pfs_go_net_13_13,
+
+         pss_go_somatomotorHand = pss_go_net_13_1, pss_go_somatomotorMouth = pss_go_net_13_2, pss_go_cinguloOpercularTaskControl = pss_go_net_13_3, pss_go_auditory = pss_go_net_13_4, pss_go_default = pss_go_net_13_5, pss_go_memoryRetrieval = pss_go_net_13_6, pss_go_visual = pss_go_net_13_7, pss_go_frontoParietalTaskControl = pss_go_net_13_8, pss_go_salience = pss_go_net_13_9, pss_go_subcortical = pss_go_net_13_10, pss_go_ventralAttention = pss_go_net_13_11, pss_go_dorsalAttention = pss_go_net_13_12, pss_go_cerebellar = pss_go_net_13_13)
+
+# Since we only have SS-FS contrast in LIA1, here we copy and reverse the sign of SS-FS contrast betas to represent error processing (i.e., get FS-SS by * -1)
+df <- df %>%
+  mutate(across(
+    c('ssfs_somatomotorHand', 'ssfs_somatomotorMouth', 'ssfs_cinguloOpercularTaskControl', 'ssfs_auditory', 'ssfs_default', 'ssfs_memoryRetrieval', 'ssfs_visual', 'ssfs_frontoParietalTaskControl', 'ssfs_salience', 'ssfs_subcortical', 'ssfs_ventralAttention','ssfs_dorsalAttention', 'ssfs_cerebellar'),
+    ~ .x * -1, .names = "fsss_{sub('ssfs_', '', .col)}"))
+
+# df <- df %>%
+#   mutate(SocialMisdev_T0 = 0, SocialMisBaseline = SocialMis_T0,
+#     SocialMisdev_T1 = SocialMis_T1 - SocialMis_T0,
+#     SocialMisdev_T2 = SocialMis_T2 - SocialMis_T0,
+#     SocialMisdev_T3 = SocialMis_T3 - SocialMis_T0)
+df[df == 9999] <- NA # Replace 9999 with NA
+# R
+vars <- c("AUDIT_T0","AUDIT_T1","AUDIT_T2","AUDIT_T3", "SocialMis_T0","SocialMis_T1","SocialMis_T2","SocialMis_T3")
+counts <- colSums(!is.na(df[vars]))
+print(counts)
+```
+
+## Examine post-error performance before removing outliers, and examine if stop accuracy differs from 50%
+```{r}
+# Descriptive statistics
+# pgc: post-go correct; pse: post-stop error; psc: post-stop correct; pea: post-error accuracy; pes: post-error slowing
+vars <- c("pgc_trials", "pse_trials", "psc_trials", "post_stop_cor_acc", "post_stop_err_acc", "pea_pse_psc", "post_stop_cor_rt", "post_stop_err_rt", "pes_pse_psc")
+for (v in vars) {
+  cat("\nDescriptive stats for", v, ":\n")
+  x <- df[[v]]
+  cat(sprintf("Mean = %.3f, SD = %.3f, range: %.3f - %.3f (n = %d)\n",
+            mean(x, na.rm = TRUE), sd(x, na.rm = TRUE), min(x, na.rm = TRUE), max(x, na.rm = TRUE), sum(!is.na(x))))}
+
+# Paired t-test with effect size and 95%CI
+paired_ttest <- function(x, y, xname, yname) {
+  res <- t.test(x, y, paired = TRUE)
+  d <- cohen.d(x, y, paired = TRUE, na.rm = TRUE)
+  cat("\nPaired t-test:", xname, "vs.", yname, "\n")
+  cat(sprintf("t = %.3f (p = %.3f, Cohen's d = %.3f, 95%% CI = %.3f to %.3f)\n",
+            res$statistic, res$p.value, d$estimate, res$conf.int[1], res$conf.int[2]))}
+
+# Run paired t-tests using dfUnscaled
+paired_ttest(df$post_stop_err_acc, df$post_go_cor_acc, "post_stop_err_acc", "post_go_cor_acc")
+paired_ttest(df$post_stop_err_acc, df$post_stop_cor_acc, "post_stop_err_acc", "post_stop_cor_acc")
+paired_ttest(df$post_stop_err_rt, df$post_go_cor_rt, "post_stop_err_rt", "post_go_cor_rt")
+paired_ttest(df$post_stop_err_rt, df$post_stop_cor_rt, "post_stop_err_rt", "post_stop_cor_rt")
+
+# normality
+print(shapiro_res <- tryCatch(shapiro.test(df$StopAcc), error = function(e) e))
+# one-sample t-test vs 50 with 95% CI
+t_res <- t.test(df$StopAcc, mu = 50, alternative = "two.sided", conf.level = 0.95)
+print(t_res)
+cat("95% CI for mean:", round(t_res$conf.int[1],2), "-", round(t_res$conf.int[2],2), "\n\n")
+cat("Cohen's d (one-sample) =", round(d <- (mean(df$StopAcc) - 50) / sd(df$StopAcc), 3), "\n")
+print(summary(df$StopAcc))
+```
+
+### Distribution of PES and PEA before removing outliers
+```{r}
+mean_err_rt <- mean(df$post_stop_err_rt, na.rm = TRUE)
+mean_go_cor_rt <- mean(df$post_go_cor_rt, na.rm = TRUE)
+mean_stop_cor_rt <- mean(df$post_stop_cor_rt, na.rm = TRUE)
+mean_err_acc <- mean(df$post_stop_err_acc, na.rm = TRUE)
+mean_go_cor_acc <- mean(df$post_go_cor_acc, na.rm = TRUE)
+mean_stop_cor_acc <- mean(df$post_stop_cor_acc, na.rm = TRUE)
+
+# Post-stop-error vs post-go-correct RTs
+p1 <- ggplot(df, aes(x = post_stop_err_rt)) +
+  geom_density(aes(fill = "post_stop_err_rt"), alpha = 0.5) +
+  geom_density(aes(x = post_go_cor_rt, fill = "post_go_cor_rt"), alpha = 0.5) +
+  geom_vline(xintercept = mean_err_rt, color = "#377eb8", linetype = "dashed", linewidth = 1) +
+  geom_vline(xintercept = mean_go_cor_rt, color = "#e41a1c", linetype = "dashed", linewidth = 1) +
+  labs(title = "Go RTs following correct Go vs. FS", x = "RT (ms)", y = "Density", fill = "Variable") +
+  scale_fill_manual(name = NULL, values = c("post_stop_err_rt" = "#377eb8", "post_go_cor_rt" = "#e41a1c"),
+                    labels = c("post_stop_err_rt" = "Go RT following FS", "post_go_cor_rt" = "Go RT following correct Go")) +
+  theme_classic()
+
+# Post-stop-error vs post-stop-correct RTs
+p2 <- ggplot(df, aes(x = post_stop_err_rt)) +
+  geom_density(aes(fill = "post_stop_err_rt"), alpha = 0.5) +
+  geom_density(aes(x = post_stop_cor_rt, fill = "post_stop_cor_rt"), alpha = 0.5) +
+  geom_vline(xintercept = mean_err_rt, color = "#377eb8", linetype = "dashed", linewidth = 1) +
+  geom_vline(xintercept = mean_stop_cor_rt, color = "#e41a1c", linetype = "dashed", linewidth = 1) +
+  labs(title = "Go RTs following SS vs. FS", x = "RT (ms)", y = "Density", fill = "Variable") +
+  scale_fill_manual(name = NULL, values = c("post_stop_err_rt" = "#377eb8", "post_stop_cor_rt" = "#e41a1c"),
+                    labels = c("post_stop_err_rt" = "Go RT following FS", "post_stop_cor_rt" = "Go RT following SS")) +
+  theme_classic()
+
+# Post-stop-error vs post-go-correct Accuracies
+p3 <- ggplot(df, aes(x = post_stop_err_acc)) +
+  geom_density(aes(fill = "post_stop_err_acc"), alpha = 0.5) +
+  geom_density(aes(x = post_go_cor_acc, fill = "post_go_cor_acc"), alpha = 0.5) +
+  geom_vline(xintercept = mean_err_acc, color = "#377eb8", linetype = "dashed", linewidth = 1) +
+  geom_vline(xintercept = mean_go_cor_acc, color = "#e41a1c", linetype = "dashed", linewidth = 1) +
+  labs(title = "Go accuracies following correct Go vs. FS", x = "Accuracy (%)", y = "Density", fill = "Variable") +
+  scale_fill_manual(name = NULL, values = c("post_stop_err_acc" = "#377eb8", "post_go_cor_acc" = "#e41a1c"),
+                    labels = c("post_stop_err_acc" = "Go accuracy following FS", "post_go_cor_acc" = "Go accuracy following correct Go")) +
+  theme_classic()
+
+# Post-stop-error vs post-stop-correct Accuracies
+p4 <- ggplot(df, aes(x = post_stop_err_acc)) +
+  geom_density(aes(fill = "post_stop_err_acc"), alpha = 0.5) +
+  geom_density(aes(x = post_stop_cor_acc, fill = "post_stop_cor_acc"), alpha = 0.5) +
+  geom_vline(xintercept = mean_err_acc, color = "#377eb8", linetype = "dashed", linewidth = 1.2) +
+  geom_vline(xintercept = mean_stop_cor_acc, color = "#e41a1c", linetype = "dashed", linewidth = 1) +
+  labs(title = "Go accuracies following SS vs. FS", x = "Accuracy (%)", y = "Density", fill = "Variable") +
+  scale_fill_manual(name = NULL, values = c("post_stop_err_acc" = "#377eb8", "post_stop_cor_acc" = "#e41a1c"),
+                    labels = c("post_stop_err_acc" = "Go accuracy following FS", "post_stop_cor_acc" = "Go accuracy following SS")) +
+  theme_classic()
+
+# Based on the t-tests and distribution plots, we can see significant post-error speeding (i.e., negative PES) when comparing post-stop-error RT to post-go-correct RT, and significant post-error-slowing (i.e., positive PES) when comparing post-stop-error RT to post-stop correct RT.
+ggarrange(p1, p3, ncol = 1, nrow = 2, common.legend = FALSE, legend = "right")
+ggarrange(p2, p4, ncol = 1, nrow = 2, common.legend = FALSE, legend = "right")
+
+tiff('Post_stop_err_post_go_cor_distribution_w.outlier.tiff', width = 5333, height = 5333, res = 800)
+ggarrange(p1, p3, ncol = 1, nrow = 2, common.legend = FALSE, legend = "right")
+dev.off()
+# png('Post_stop_err_post_stop_cor_distribution_w.outlier.png', width = 1600, height = 1067, res = 300)
+tiff('Post_stop_err_post_stop_cor_distribution_w.outlier.tiff', width = 5333, height = 5333, res = 800)
+ggarrange(p2, p4, ncol = 1, nrow = 2, common.legend = FALSE, legend = "right")
+dev.off()
+```
+
+## Correlations before removing outliers: 1) SSRT and SS-Go brain activations, 2) pea_pse_psc, pes_pse_psc, and FS-SS brain activations, and 3) pea_pse_psc, pes_pse_psc, and FS brain activations
+```{r}
+behav_corr <- corr_coef(df[, c("GoAcc", "GoRT", "StopAcc", "SSD", "SSRT", "pes_pse_psc", "pea_pse_psc")])
+behav_corr
+plot(behav_corr, col.low = "blue", col.mid = "white", col.high ="red", order = "original")
+# SSRT didn't correlate with PEA_pse_psc or PES_pse_psc.
+# pes_pse_psc had significantly negative correlation with pea_pse_psc, indicating that greater post-error slowing is related to lower post-error accuracy.
+
+# Correlation between SSRT and SS-Go brain activations
+df <- df %>% rename("Somatomotor-Hand" = ssgo_somatomotorHand, "Somatomotor-Mouth" = ssgo_somatomotorMouth, "Cingulo-Opercular" = ssgo_cinguloOpercularTaskControl, Auditory = ssgo_auditory, "Default Mode" = ssgo_default, "Memory Retrieval" = ssgo_memoryRetrieval,  Visual = ssgo_visual,  "Fronto-Parietal" = ssgo_frontoParietalTaskControl, Salience = ssgo_salience, Subcortical = ssgo_subcortical, "Ventral Attention" = ssgo_ventralAttention, "Dorsal Attention" = ssgo_dorsalAttention, Cerebellar = ssgo_cerebellar)
+ssrt_ssgo_corr <- corr_coef(df[, c("Cerebellar", "Somatomotor-Hand", "Somatomotor-Mouth", "Cingulo-Opercular", "Auditory", "Default Mode", "Memory Retrieval", "Dorsal Attention", "Fronto-Parietal", "Salience", "Ventral Attention", "Subcortical", "Visual", "SSRT")])
+ssrt_ssgo_corr
+# tiff('ssrt_ssgo_corr_plot.tiff', width = 2800, height = 2000, res = 300)
+# plot(ssrt_ssgo_corr, col.low = "blue", col.mid = "white", col.high ="red", reorder = FALSE, caption = FALSE, type = "upper", legend.position = "upper right")
+# dev.off()
+plot(ssrt_ssgo_corr, col.low = "blue", col.mid = "white", col.high ="red", reorder = FALSE, caption = FALSE, type = "upper", legend.position = "upper right")
+df <- df %>% rename(ssgo_somatomotorHand = "Somatomotor-Hand", ssgo_somatomotorMouth = "Somatomotor-Mouth", ssgo_cinguloOpercularTaskControl = "Cingulo-Opercular", ssgo_auditory = Auditory,
+  ssgo_default = "Default Mode",  ssgo_memoryRetrieval = "Memory Retrieval", ssgo_visual = Visual, ssgo_frontoParietalTaskControl = "Fronto-Parietal", ssgo_salience = Salience, ssgo_subcortical = Subcortical,
+  ssgo_ventralAttention = "Ventral Attention", ssgo_dorsalAttention = "Dorsal Attention", ssgo_cerebellar = Cerebellar)
+# SSRT had significantly negative correlations with networks 4 (auditory), 5 (default), 6 (memoryRetrieval), and 7 (visual), greater activations in these networks are related to better inhibition (i.e., lower SSRT).
+
+# Correlation between pes_pse_psc and FS-Go brain activations
+df <- df %>% rename(PES = pes_pse_psc, "Somatomotor-Hand" = fsgo_somatomotorHand, "Somatomotor-Mouth" = fsgo_somatomotorMouth, "Cingulo-Opercular" = fsgo_cinguloOpercularTaskControl, Auditory = fsgo_auditory, "Default Mode" = fsgo_default, "Memory Retrieval" = fsgo_memoryRetrieval,  Visual = fsgo_visual,  "Fronto-Parietal" = fsgo_frontoParietalTaskControl, Salience = fsgo_salience, Subcortical = fsgo_subcortical, "Ventral Attention" = fsgo_ventralAttention, "Dorsal Attention" = fsgo_dorsalAttention, Cerebellar = fsgo_cerebellar)
+pes_fsgo_corr <- corr_coef(df[, c("PES", "Cerebellar", "Somatomotor-Hand", "Somatomotor-Mouth", "Cingulo-Opercular", "Auditory", "Default Mode", "Memory Retrieval", "Dorsal Attention", "Fronto-Parietal", "Salience", "Ventral Attention", "Subcortical", "Visual")])
+pes_fsgo_corr
+# tiff('pes_fsgo_corr_plot.tiff', width = 2800, height = 2000, res = 300)
+# plot(pes_fsgo_corr, col.low = "blue", col.mid = "white", col.high ="red", reorder = FALSE, caption = FALSE, legend.position = "right")
+# dev.off()
+plot(pes_fsgo_corr, col.low = "blue", col.mid = "white", col.high ="red", reorder = FALSE, caption = FALSE, legend.position = "right")
+df <- df %>% rename(pes_pse_psc = PES, fsgo_somatomotorHand = "Somatomotor-Hand", fsgo_somatomotorMouth = "Somatomotor-Mouth", fsgo_cinguloOpercularTaskControl = "Cingulo-Opercular", fsgo_auditory = Auditory, fsgo_default = "Default Mode",  fsgo_memoryRetrieval = "Memory Retrieval", fsgo_visual = Visual, fsgo_frontoParietalTaskControl = "Fronto-Parietal", fsgo_salience = Salience, fsgo_subcortical = Subcortical,  fsgo_ventralAttention = "Ventral Attention", fsgo_dorsalAttention = "Dorsal Attention", fsgo_cerebellar = Cerebellar)
+# PEA_pse_psc didn't correlated with any networks, and it is not observed in LIA1. PES_pse_psc had significantly negative correlations with salience and subcortical networks.
+
+# Combine the above plots into one figure for publication
+p1 <- plot(ssrt_ssgo_corr, col.low = "blue", col.mid = "white", col.high = "red", reorder = FALSE, caption = FALSE, type = "upper", legend.position = "upper right")
+p2 <- plot(pes_fsgo_corr, col.low = "blue", col.mid = "white", col.high = "red", reorder = FALSE, caption = FALSE, legend.position = "upper right")
+combined_plot <- ggarrange(p1, p2, labels = c("(a) SSRT", "(b) PES"), label.x = 0.2)
+tiff('behav_net_corr_plots.tiff', width = 4000, height = 2000, res = 300)
+print(combined_plot)
+dev.off()
+
+# Extra analyses that aren't included in the manuscript
+pe_fsss_corr <- corr_coef(df[, c("pes_pse_psc", "pea_pse_psc", 'fsss_somatomotorHand', 'fsss_somatomotorMouth', 'fsss_cinguloOpercularTaskControl', 'fsss_auditory', 'fsss_default', 'fsss_memoryRetrieval', 'fsss_visual', 'fsss_frontoParietalTaskControl', 'fsss_salience', 'fsss_subcortical', 'fsss_ventralAttention', 'fsss_dorsalAttention', 'fsss_cerebellar')])
+pe_fsss_corr
+plot(pe_fsss_corr, col.low = "blue", col.mid = "white", col.high ="red", order = "original")
+# PES_pse_psc didn't have significant correlations with any networks; but, PEA_pse_psc had significantly negative correlations with auditory, somatomotor-hand, somatomotor-mouth, dorsal attention, visual, and ventral attention networks, indicating that greater activations in these networks are related to lower improment in post-error accuracy. But, PEA didn't exist in LIA1.
+
+# Neither pea_pse_psc nor pes_pse_psc had significant correlations with pfs_go networks.
+pe_pfsgo_corr <- corr_coef(df[, c("pes_pse_psc", "pea_pse_psc", 'pfs_go_somatomotorHand', 'pfs_go_somatomotorMouth', 'pfs_go_cinguloOpercularTaskControl', 'pfs_go_auditory', 'pfs_go_default', 'pfs_go_memoryRetrieval', 'pfs_go_visual', 'pfs_go_frontoParietalTaskControl', 'pfs_go_salience', 'pfs_go_subcortical', 'pfs_go_ventralAttention', 'pfs_go_dorsalAttention', 'pfs_go_cerebellar')])
+pe_pfsgo_corr
+plot(pe_pfsgo_corr, col.low = "blue", col.mid = "white", col.high ="red", order = "original")
+
+# Supplementary analyses: partial PES-fsgo correlations controlling for StopAcc
+# Correlation between pes_pse_psc and networks controlling for StopAcc
+vars <- c("pes_pse_psc", "pea_pse_psc", 'fsgo_somatomotorHand', 'fsgo_somatomotorMouth', 'fsgo_cinguloOpercularTaskControl', 'fsgo_auditory', 'fsgo_default', 'fsgo_memoryRetrieval', 'fsgo_visual', 'fsgo_frontoParietalTaskControl', 'fsgo_salience', 'fsgo_subcortical', 'fsgo_ventralAttention', 'fsgo_dorsalAttention', 'fsgo_cerebellar')
+results <- data.frame(variable = character(), estimate = numeric(), p.value = numeric(), stringsAsFactors = FALSE)
+for (v in vars) {
+  res <- pcor.test(df[[v]], df$pes_pse_psc, df[, c("StopAcc", "GoRT", "sex")])
+  results <- rbind(results, data.frame(variable = v, estimate = res$estimate, p.value = res$p.value))}
+print(results)
+
+pcor.test(df$pes_pse_psc, df$fsgo_subcortical, df[, c("StopAcc", "GoRT", "sex")])
+```
+
+## Remove outliers and standardize data
+```{r}
+# Exclude individuals with AUDIT_T0 >= 8
+# df <- df %>%
+#   filter(AUDIT_T0 < 8)
+dfUnscaled <- df # Save the unscaled data for later descriptive statistics
+
+# List of variables to scale
+variables_to_scale <- c("CTQ_TotalCorrected", "AdChild", "SUPPS_Impulsive", "BIS_Impulsive", "CDRISC_Resilience", "stateAnxiety",	"traitAnxiety", "BDI_depression", "GoAcc", "GoRT", "StopAcc", "SSD", "SSRT", "pea_pse_psc", "pes_pse_psc",
+
+"rIFG_ss_go", "lIFG_ss_go", "rInsula_ss_go", "lInsula_ss_go", "biIFGInsula_ss_go",  "rSFG_ssrt", "lSFG_ssrt", "biIFGSFGInsula_ssrt", "lMidOrbG_socialMis", "lSMedG_socialMis", "lMidFGIFG_socialMis", "lMidFG_socialMis", "ave_socialMis",
+
+"net_7_1", "net_7_2", "net_7_3", "net_7_4", "net_7_5", "net_7_6", "net_7_7", "net_17_1", "net_17_2", "net_17_3", "net_17_4", "net_17_5", "net_17_6", "net_17_7", "net_17_8", "net_17_9", "net_17_10", "net_17_11", "net_17_12", "net_17_13", "net_17_14", "net_17_15", "net_17_16", "net_17_17",
+
+"ss_somatomotorHand", "ss_somatomotorMouth", "ss_cinguloOpercularTaskControl", "ss_auditory", "ss_default", "ss_memoryRetrieval", "ss_visual", "ss_frontoParietalTaskControl", "ss_salience", "ss_subcortical", "ss_ventralAttention", "ss_dorsalAttention", "ss_cerebellar",
+
+"fs_somatomotorHand", "fs_somatomotorMouth", "fs_cinguloOpercularTaskControl", "fs_auditory", "fs_default", "fs_memoryRetrieval", "fs_visual", "fs_frontoParietalTaskControl", "fs_salience", "fs_subcortical", "fs_ventralAttention", "fs_dorsalAttention", "fs_cerebellar",
+
+"ssgo_somatomotorHand", "ssgo_somatomotorMouth", "ssgo_cinguloOpercularTaskControl", "ssgo_auditory", "ssgo_default", "ssgo_memoryRetrieval", "ssgo_visual", "ssgo_frontoParietalTaskControl", "ssgo_salience", "ssgo_subcortical", "ssgo_ventralAttention", "ssgo_dorsalAttention", "ssgo_cerebellar",
+
+"fsgo_somatomotorHand", "fsgo_somatomotorMouth", "fsgo_cinguloOpercularTaskControl", "fsgo_auditory", "fsgo_default", "fsgo_memoryRetrieval", "fsgo_visual", "fsgo_frontoParietalTaskControl", "fsgo_salience", "fsgo_subcortical", "fsgo_ventralAttention", "fsgo_dorsalAttention", "fsgo_cerebellar",
+
+"ssfs_somatomotorHand", "ssfs_somatomotorMouth", "ssfs_cinguloOpercularTaskControl", "ssfs_auditory", "ssfs_default", "ssfs_memoryRetrieval", "ssfs_visual", "ssfs_frontoParietalTaskControl", "ssfs_salience", "ssfs_subcortical", "ssfs_ventralAttention", "ssfs_dorsalAttention", "ssfs_cerebellar",
+
+"fsss_somatomotorHand", "fsss_somatomotorMouth", "fsss_cinguloOpercularTaskControl", "fsss_auditory", "fsss_default", "fsss_memoryRetrieval", "fsss_visual", "fsss_frontoParietalTaskControl", "fsss_salience", "fsss_subcortical", "fsss_ventralAttention", "fsss_dorsalAttention", "fsss_cerebellar")
+
+df <- df %>%
+  mutate_at(vars(all_of(variables_to_scale)), scale)
+
+# Detect multivariate outliers. First we create a numeric matrix of the variables of interest.
+numeric_data <- df[, c("AUDIT_T0", 'SocialMis_T0', "AdChild",  "sex", "SSRT", "StopAcc", "pes_pse_psc", "ssgo_auditory", "ssgo_default", "ssgo_memoryRetrieval", "ssgo_visual", "fsgo_salience", "fsgo_subcortical")]
+
+# Calculate Mahalanobis distance
+mahalanobis_dist <- mahalanobis(numeric_data, colMeans(numeric_data, na.rm = TRUE), cov(numeric_data, use = "pairwise.complete.obs"))
+
+# Calculate the threshold using chi-square distribution (p = .05)
+df_chi <- ncol(numeric_data)  # DF = number of variables
+threshold <- qchisq(p = 0.95, df = df_chi)
+outliers <- mahalanobis_dist > threshold
+dfclean <- df[!outliers, ]
+dfUnscaled <- dfUnscaled[!outliers, ]
+
+# Print summary
+cat("Number of outliers detected:", sum(outliers), "\n")
+cat("Number of observations retained:", nrow(dfclean), "\n")
+cat("Percentage of data removed:", round(sum(outliers)/length(outliers) * 100, 2), "%\n")
+print(df$mriID[outliers])
+```
+
+## Examine post-error performance after removing outliers, and examine if stop accuracy differs from 50%
+```{r}
+# Descriptive statistics
+# pgc: post-go correct; pse: post-stop error; psc: post-stop correct; pea: post-error accuracy; pes: post-error slowing
+vars <- c("pgc_trials", "pse_trials", "psc_trials", "post_stop_cor_acc", "post_stop_err_acc", "pea_pse_psc", "post_stop_cor_rt", "post_stop_err_rt", "pes_pse_psc")
+for (v in vars) {
+  cat("\nDescriptive stats after removing outliers for", v, ":\n")
+  x <- dfUnscaled[[v]]
+  cat(sprintf("Mean = %.3f, SD = %.3f, range: %.3f - %.3f (n = %d)\n",
+            mean(x, na.rm = TRUE), sd(x, na.rm = TRUE), min(x, na.rm = TRUE), max(x, na.rm = TRUE), sum(!is.na(x))))}
+
+# Paired t-test with effect size and 95%CI
+paired_ttest <- function(x, y, xname, yname) {
+  res <- t.test(x, y, paired = TRUE)
+  d <- cohen.d(x, y, paired = TRUE, na.rm = TRUE)
+  cat("\nPaired t-test:", xname, "vs.", yname, "\n")
+  cat(sprintf("t = %.3f (p = %.3f, Cohen's d = %.3f, 95%% CI = %.3f to %.3f)\n",
+            res$statistic, res$p.value, d$estimate, res$conf.int[1], res$conf.int[2]))}
+
+# Run paired t-tests using dfUnscaled
+paired_ttest(dfUnscaled$post_stop_err_acc, dfUnscaled$post_go_cor_acc, "post_stop_err_acc", "post_go_cor_acc")
+paired_ttest(dfUnscaled$post_stop_err_acc, dfUnscaled$post_stop_cor_acc, "post_stop_err_acc", "post_stop_cor_acc")
+paired_ttest(dfUnscaled$post_stop_err_rt, dfUnscaled$post_go_cor_rt, "post_stop_err_rt", "post_go_cor_rt")
+paired_ttest(dfUnscaled$post_stop_err_rt, dfUnscaled$post_stop_cor_rt, "post_stop_err_rt", "post_stop_cor_rt")
+
+# normality
+print(shapiro_res <- tryCatch(shapiro.test(dfUnscaled$StopAcc), error = function(e) e))
+# one-sample t-test vs 50 with 95% CI
+t_res <- t.test(dfUnscaled$StopAcc, mu = 50, alternative = "two.sided", conf.level = 0.95)
+print(t_res)
+cat("95% CI for mean:", round(t_res$conf.int[1],2), "-", round(t_res$conf.int[2],2), "\n\n")
+cat("Cohen's d (one-sample) =", round(d <- (mean(df$StopAcc) - 50) / sd(df$StopAcc), 3), "\n")
+print(summary(dfUnscaled$StopAcc))
+```
+
+### Distribution of PES and PEA after removing outliers
+```{r}
+mean_err_rt <- mean(dfUnscaled$post_stop_err_rt, na.rm = TRUE)
+mean_go_cor_rt <- mean(dfUnscaled$post_go_cor_rt, na.rm = TRUE)
+mean_stop_cor_rt <- mean(dfUnscaled$post_stop_cor_rt, na.rm = TRUE)
+mean_err_acc <- mean(dfUnscaled$post_stop_err_acc, na.rm = TRUE)
+mean_go_cor_acc <- mean(dfUnscaled$post_go_cor_acc, na.rm = TRUE)
+mean_stop_cor_acc <- mean(dfUnscaled$post_stop_cor_acc, na.rm = TRUE)
+
+# Post-stop-error vs post-go-correct RTs
+p1 <- ggplot(dfUnscaled, aes(x = post_stop_err_rt)) +
+  geom_density(aes(fill = "post_stop_err_rt"), alpha = 0.5) +
+  geom_density(aes(x = post_go_cor_rt, fill = "post_go_cor_rt"), alpha = 0.5) +
+  geom_vline(xintercept = mean_err_rt, color = "#377eb8", linetype = "dashed", linewidth = 1) +
+  geom_vline(xintercept = mean_go_cor_rt, color = "#e41a1c", linetype = "dashed", linewidth = 1) +
+  labs(title = "Go RTs following correct Go vs. FS", x = "RT (ms)", y = "Density", fill = "Variable") +
+  scale_fill_manual(name = NULL, values = c("post_stop_err_rt" = "#377eb8", "post_go_cor_rt" = "#e41a1c"),
+                    labels = c("post_stop_err_rt" = "Go RT following FS", "post_go_cor_rt" = "Go RT following correct Go")) +
+  theme_classic()
+
+# Post-stop-error vs post-stop-correct RTs
+p2 <- ggplot(dfUnscaled, aes(x = post_stop_err_rt)) +
+  geom_density(aes(fill = "post_stop_err_rt"), alpha = 0.5) +
+  geom_density(aes(x = post_stop_cor_rt, fill = "post_stop_cor_rt"), alpha = 0.5) +
+  geom_vline(xintercept = mean_err_rt, color = "#377eb8", linetype = "dashed", linewidth = 1) +
+  geom_vline(xintercept = mean_stop_cor_rt, color = "#e41a1c", linetype = "dashed", linewidth = 1) +
+  labs(title = "Go RTs following SS vs. FS", x = "RT (ms)", y = "Density", fill = "Variable") +
+  scale_fill_manual(name = NULL, values = c("post_stop_err_rt" = "#377eb8", "post_stop_cor_rt" = "#e41a1c"),
+                    labels = c("post_stop_err_rt" = "Go RT following FS", "post_stop_cor_rt" = "Go RT following SS")) +
+  theme_classic()
+
+# Post-stop-error vs post-go-correct Accuracies
+p3 <- ggplot(dfUnscaled, aes(x = post_stop_err_acc)) +
+  geom_density(aes(fill = "post_stop_err_acc"), alpha = 0.5) +
+  geom_density(aes(x = post_go_cor_acc, fill = "post_go_cor_acc"), alpha = 0.5) +
+  geom_vline(xintercept = mean_err_acc, color = "#377eb8", linetype = "dashed", linewidth = 1) +
+  geom_vline(xintercept = mean_go_cor_acc, color = "#e41a1c", linetype = "dashed", linewidth = 1) +
+  labs(title = "Go accuracies following correct Go vs. FS", x = "Accuracy (%)", y = "Density", fill = "Variable") +
+  scale_fill_manual(name = NULL, values = c("post_stop_err_acc" = "#377eb8", "post_go_cor_acc" = "#e41a1c"),
+                    labels = c("post_stop_err_acc" = "Go accuracy following FS", "post_go_cor_acc" = "Go accuracy following correct Go")) +
+  theme_classic()
+
+# Post-stop-error vs post-stop-correct Accuracies
+p4 <- ggplot(dfUnscaled, aes(x = post_stop_err_acc)) +
+  geom_density(aes(fill = "post_stop_err_acc"), alpha = 0.5) +
+  geom_density(aes(x = post_stop_cor_acc, fill = "post_stop_cor_acc"), alpha = 0.5) +
+  geom_vline(xintercept = mean_err_acc, color = "#377eb8", linetype = "dashed", linewidth = 1) +
+  geom_vline(xintercept = mean_stop_cor_acc, color = "#e41a1c", linetype = "dashed", linewidth = 1) +
+  labs(title = "Go accuracies following SS vs. FS", x = "Accuracy (%)", y = "Density", fill = "Variable") +
+  scale_fill_manual(name = NULL, values = c("post_stop_err_acc" = "#377eb8", "post_stop_cor_acc" = "#e41a1c"),
+                    labels = c("post_stop_err_acc" = "Go accuracy following FS", "post_stop_cor_acc" = "Go accuracy following SS")) +
+  theme_classic()
+
+# Based on the t-tests and distribution plots, we can see significant post-error speeding (i.e., negative PES) when comparing post-stop-error RT to post-go-correct RT, and significant post-error-slowing (i.e., positive PES) when comparing post-stop-error RT to post-stop correct RT.
+ggarrange(p1, p3, ncol = 1, nrow = 2, common.legend = FALSE, legend = "right")
+ggarrange(p2, p4, ncol = 1, nrow = 2, common.legend = FALSE, legend = "right")
+
+tiff('Post_stop_err_post_go_cor_distribution_wo.outlier.tiff', width = 2000, height = 2000, res = 300)
+ggarrange(p1, p3, ncol = 1, nrow = 2, common.legend = FALSE, legend = "right")
+dev.off()
+tiff('Post_stop_err_post_stop_cor_distribution_wo.outlier.tiff', width = 2000, height = 2000, res = 300)
+ggarrange(p2, p4, ncol = 1, nrow = 2, common.legend = FALSE, legend = "right")
+dev.off()
+```
+
+# Sample characteristics w/o outliers
+```{r}
+# Display counts and proportions for categorical variables
+cat_vars <- c("sex", "race", "ethnicity")
+
+for (var in cat_vars) {
+  cat("\nDescriptive statistics for", var, ":\n")
+  print(table(dfclean[[var]], useNA = "ifany"))
+  print(prop.table(table(dfclean[[var]], useNA = "ifany")))}
+
+# Count n in each wave
+n_T0 <- sum(!is.na(dfclean$AUDIT_T0) & !is.na(dfclean$SocialMis_T0))
+n_T1 <- sum(!is.na(dfclean$AUDIT_T1) & !is.na(dfclean$SocialMis_T1))
+n_T2 <- sum(!is.na(dfclean$AUDIT_T2) & !is.na(dfclean$SocialMis_T2))
+n_T3 <- sum(!is.na(dfclean$AUDIT_T3) & !is.na(dfclean$SocialMis_T3))
+
+cat("T0:", n_T0, "\nT1:", n_T1, "\nT2:", n_T2, "\nT3:", n_T3, "\n")
+
+# Count by sex for each wave
+count_by_sex <- function(audit, socialmis, sex) {
+  table(
+    sex = dfclean[[sex]][!is.na(dfclean[[audit]]) & !is.na(dfclean[[socialmis]])],
+    useNA = "ifany")}
+
+cat("T0:\n"); print(count_by_sex("AUDIT_T0", "SocialMis_T0", "sex"))
+cat("T1:\n"); print(count_by_sex("AUDIT_T1", "SocialMis_T1", "sex"))
+cat("T2:\n"); print(count_by_sex("AUDIT_T2", "SocialMis_T2", "sex"))
+cat("T3:\n"); print(count_by_sex("AUDIT_T3", "SocialMis_T3", "sex"))
+```
+
+## Descriptive statistics for questionnaire and behavioral data w/o outliers
+```{r}
+vars <- c("AUDIT_T0", "AUDIT_T1", "AUDIT_T2", "AUDIT_T3", "SocialMis_T0", "SocialMis_T1", "SocialMis_T2", "SocialMis_T3", "AdChild", "GoAcc", "GoRT", "StopAcc", "SSD", "SSRT", "pea_pse_psc", "pes_pse_psc")
+desc <- map_dfr(vars, ~{
+  x <- dfUnscaled[[.x]]
+  mean_x <- mean(x, na.rm = TRUE)
+  sd_x   <- sd(x, na.rm = TRUE)
+  n_x    <- sum(!is.na(x))
+  tibble(Variable = .x, Mean = mean_x, SD = sd_x, N = n_x,
+         Summary = sprintf("%.2f (%.2f), %d", mean_x, sd_x, n_x))})
+knitr::kable(desc %>% select(Variable, Summary), format = "html", caption = "Descriptive statistics") %>%
+  kableExtra::kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover", "condensed"))
+
+# Shapiro-Wilk normality test
+shapiro.test(dfUnscaled$StopAcc[!is.na(dfUnscaled$StopAcc)])
+# Q-Q plot
+qqnorm(dfUnscaled$StopAcc, main = "Q-Q Plot for StopAcc")
+qqline(dfUnscaled$StopAcc, col = "red")
+
+stopacc_range <- range(dfUnscaled$StopAcc, na.rm = TRUE)
+print(stopacc_range)
+library(ggplot2)
+ggplot(dfUnscaled, aes(x = StopAcc)) +
+  geom_histogram(aes(y = ..density..), bins = 30, fill = "#377eb8", color = "white", na.rm = TRUE) +
+  geom_density(color = "#e41a1c", linewidth = 1, na.rm = TRUE) +
+  labs(title = "Distribution of StopAcc", x = "StopAcc", y = "Density") +
+  theme_classic()
+```
+
+## Correlations between questionnaire and behavioral data w/o outliers
+```{r}
+corr_df <- dfUnscaled[,names(dfUnscaled) %in% c('AUDIT_T0', 'SocialMis_T0', 'AdChild', "SUPPS_Impulsive", "BIS_Impulsive", "CDRISC_Resilience", "stateAnxiety", "traitAnxiety", "BDI_depression", "GoAcc", "GoRT", "StopAcc", "SSRT", "pea_pse_psc", "pes_pse_psc")]
+
+corr <- cor(corr_df, use = "pairwise.complete.obs")
+rTest <- cor.mtest(corr_df, conf.level = 0.95)
+tiff('questionnaire-behavior corr.tiff', width = 2000, height = 2000, res = 300)
+corrplot(corr, p.mat = rTest$p, method = 'color', diag = FALSE, type = 'upper', order = 'original',
+         sig.level = c(0.001, 0.01, 0.05), pch.cex = 0.9, insig = 'label_sig', pch.col = 'grey20', col = colorRampPalette(c("blue", "white", "red"))(10))
+dev.off()
+correltable(data = corr_df)
+
+# If desired, partial correlation can be calculated
+# pcor.test(df$cinguloOpercularTaskControl, df$SSRT, df$sex) # correlation between x and y when controlling for sex
+```
+
+# Hypothesis Testing
+In the initial model by nlme, which is not shown in this markdown, we included the covariates (i.e., sex and AdChild), predictors (i.e., SocialMis and inhibition-related variables) and the interaction between predictors in the formulas of intercept and slope. We also modeled random intercept and random slope as we believe that people with a higher starting AUDIT can have a less change in AUDIT slope. However, this approach can cause convergence issue in several models. Therefore, we decided to analyze two types of models using lmer: 1. a cross-sectional model using baseline data only: AUDIT_T0 ~ sex + AdChild + SocialMis + Inhibition + SocialMis*Inhibition, and 2. a trajectory model: AUDIT ~ sex + AdChild + SocialMis +Inhibition + SocialMis*Inhibition*Time.<br>
+
+There are 16 models being examined in total, each one has its own moderator: 1 with SSRT, 1 with SUPPS, 1 with BIS, and 13 with brain network activations.<br><br>
+
+## Cross-sectional model (i.e., with baseline data only)
+```{r}
+base.lme <- (lm(AUDIT_T0 ~ 1 + sex + AdChild + SocialMis_T0, data = dfclean, na.action = na.exclude))
+summary(base.lme)
+ggplot(data = dfclean, aes(x = SocialMis_T0, y = AUDIT_T0)) +
+  geom_point(alpha = 0.6) +  # Scatter points
+  geom_smooth(method = "lm", formula = y ~ x, color = "blue") +  # Regression line
+  labs(
+    x = "Social Mistreatment (T0)",
+    y = "AUDIT (T0)",
+    title = "Scatter Plot with Regression Line"
+  ) + theme_minimal()
+
+# Test the moderation of inhibition-related variables if needed, I did but found the reversed direction of results as compared to the trajectory model.
+variables <- c("SUPPS_Impulsive", "BIS_Impulsive", "GoAcc", "GoRT", "StopAcc", "SSD", "SSRT", "pes_pse_psc", "ssgo_auditory", "ssgo_default", "ssgo_memoryRetrieval", "ssgo_visual", "fsgo_salience", "fsgo_subcortical")
+
+for (var in variables) {
+  cat("\nProcessing variable:", var, "\n")
+  formula <- as.formula(paste("AUDIT_T0 ~ 1 + sex + AdChild + SocialMis_T0 *", var))
+  base.lme <- (lm(formula, data = dfclean, na.action = na.exclude))
+  print(summary(base.lme))
+  print(simple_slopes(base.lme, pred = "SocialMis_T0", mod1 = var))
+  eval(substitute(
+    print(interact_plot(base.lme, pred = "SocialMis_T0", modx = MODX, interval = TRUE)),
+    list(MODX = as.name(var))
+  ))}
+
+# # The default values of BDI score and go accuracy picked by simple_slopes exceed the data range (+-1SD), thus we run simple_slopes for them separately using mean, 1st and 3rd quantiles.
+# bdi.lme <- lm(AUDIT_T0 ~ 1 + sex + AdChild + SocialMis_T0 * BDI_depression, data = df, na.action = na.exclude)
+# print(simple_slopes(bdi.lme, pred = "SocialMis_T0", mod1 = BDI_depression, levels = c(-0.503426, -0.503426, 0.170718)))
+# interact_plot(bdi.lme, pred = "SocialMis_T0", modx = "BDI_depression", interval = TRUE, modxvals = c(-0.503426, 0.006155, 0.170718))
+# goacc.lme <- lm(AUDIT_T0 ~1 + sex + AdChild + SocialMis_T0 * GoAcc, data = df, na.action = na.exclude)
+# print(simple_slopes(goacc.lme, pred = "SocialMis_T0", mod1 = "GoAcc", levels = c(0.1164, 0.1020, 0.4602)))
+# interact_plot(goacc.lme, pred = "SocialMis_T0", modx = "GoAcc", interval = TRUE, modxvals = c(0.1164, 0.2935, 0.4602))
+```
+
+```{r}
+# Reshape data to long format while preserving NA values
+df_long <- dfclean %>%
+  pivot_longer(
+    cols = matches("(_T[0-3])$"),            # only columns that end with _T0/_T1/_T2/_T3
+    names_to = c(".value", "Time"),          # .value -> make measure names columns; time -> the wave index
+    names_pattern = "(.+)_T([0-3])$"         # capture measure name and time digit
+  ) %>%
+  mutate(Time = as.integer(Time)) %>%        # convert time to numeric 0..3 (or +1 if preferred)
+  filter(!if_all(matches("^(AUDIT|SocialMis|.*)$"), is.na)) # drop rows where all time-varying measures are NA
+  # filter(!if_all(matches("^(AUDIT|SocialMis|SocialMisdev|.*)$"), is.na))
+
+# quick checks
+nrow(df_long)       # should be ~ n_subjects * 4 (e.g., 133*4 = 532)
+table(df_long$Time) # counts per wave
+head(df_long, 12)
+
+# Visulaing the AUDIT slope
+tiff('audit_slope_trajectories.tiff', width = 6400, height = 6400, res = 800)
+average_audit <- df_long %>%
+  group_by(Time) %>%
+  summarise(mean_audit = mean(AUDIT, na.rm = TRUE))
+
+ggplot(data = df_long, aes(x = Time, y = AUDIT, group = mriID)) +
+    geom_point(size = 5, alpha = .2) + geom_line() +
+    geom_line(data = average_audit, aes(x = Time, y = mean_audit, group = 1), color = "red", linewidth = 1.2) +
+    theme_classic() +
+    scale_x_continuous(limits=c(0, 3), breaks = c(0, 1, 2, 3), name = "Time") +
+    scale_y_continuous(limits=c(0, 25), breaks = c(0, 5, 10, 15, 20, 25), name = "AUDIT")
+dev.off()
+
+unique_mriID_count <- df_long %>%
+  summarise(unique_count = n_distinct(mriID))
+print(unique_mriID_count)
+
+sample_size_per_time <- df_long %>%
+  group_by(Time) %>%
+  summarise(sample_size = n())
+print(sample_size_per_time)
+```
+
+```{r}
+# Reduce the data observations (rows) so that all the following models have the same number of observations. This is important for comparing model fit indices (e.g., AIC, BIC, anova) across models.
+# This code removes the rows (not mriID) with missing values for SocialMis
+socialMis.lme <- lmer(AUDIT ~ 1 + sex + AdChild + SocialMis*Time + (1 | mriID), data = df_long, REML = FALSE, na.action = na.exclude)
+mf <- model.frame(socialMis.lme)                     # data used for socialMis.lme
+used_rows <- as.integer(rownames(mf))                # row numbers in df_long used by that model
+df_long <- df_long[used_rows, , drop = FALSE]      # subset original data
+
+pairs <- list(c("AUDIT_T1", "SocialMis_T1"), c("AUDIT_T2", "SocialMis_T2"), c("AUDIT_T3", "SocialMis_T3"))
+for (p in pairs) {
+  col1 <- p[1]; col2 <- p[2]
+  complete_idx <- complete.cases(dfUnscaled[[col1]], dfUnscaled[[col2]])
+  n <- sum(complete_idx)
+  if (n > 0) {
+    m1 <- mean(dfUnscaled[[col1]][complete_idx], na.rm = TRUE)
+    s1 <- sd(dfUnscaled[[col1]][complete_idx], na.rm = TRUE)
+    m2 <- mean(dfUnscaled[[col2]][complete_idx], na.rm = TRUE)
+    s2 <- sd(dfUnscaled[[col2]][complete_idx], na.rm = TRUE)
+    cat(sprintf("%s & %s: n = %d\n  %s: mean = %.2f, sd = %.2f\n  %s: mean = %.2f, sd = %.2f\n\n",
+                col1, col2, n, col1, m1, s1, col2, m2, s2))
+  } else {
+    cat(sprintf("%s & %s: no complete pairs\n\n", col1, col2))}}
+
+nrow(model.frame(socialMis.lme))                     # should show 369
+nrow(df_long)
+```
+
+## Hierarchical Linear Modeling (HLM) for Longitudinal Data
+### The full model looks like this:
+### Level 1 (within-person model)
+AUDIT~ij~ = β~0j~ + β~1j~Time~ij~ + e~ij~ <br><br>
+
+### Level 2 (between-person model)
+β~1j~ = γ~10~ + γ~11~Sex~j~ + γ~12~AdChild~j~ + γ~13~SocialMis~j~ + γ~14~Inhibition~j~ + γ~15~SocialMis~j~*Inhibition~j~ + r~2j~<br><br>
+
+Sex and AdChild are time-invariant covariates, which means they didn't vary within individuals over time, thus they are included at level 2.<br>
+The SocialMis at level 2 is the between-individual difference in SocialMis, to reflect, for example, does AUDIT increase when a person has a higher SocialMis than other people?<br>
+In our analyses, we allow the intercept and slope to be random across participants.<br>
+
+## Step 1: calculate ICC
+```{r}
+null.lme <- lmer(AUDIT ~ 1 + (1 | mriID), data=df_long, REML = FALSE, na.action = na.exclude)
+summary(null.lme)
+icc(null.lme, ci = T, set.seed(12345))
+# HLM is appropriate for our data because there was a significant intraclass correlation coefficient (adjusted ICC = .54, 95% CI = .40 to .65), while there was a trend of increased AUDIT based on the trjectory plot above.
+```
+
+## Step 2a: Unconditional growth model
+### Level 1
+AUDIT~ij~ = β~0j~ + β~1j~Time~ij~ + e~ij~
+```{r}
+uncon.lme <- lmer(AUDIT ~ 1 + Time + (1 | mriID), data = df_long, REML = FALSE, na.action = na.exclude)
+summary(uncon.lme)
+uncon.coef <- tidy(uncon.lme, conf.int = TRUE)
+uncon.coef
+confint(uncon.lme)
+
+r.squaredGLMM(uncon.lme) - r.squaredGLMM(null.lme)
+anova(uncon.lme, null.lme)
+# The main effect of time is significant, as time increases by 1 year, AUDIT increases by .70 points (uncentered).
+
+emm_num <- emmeans(uncon.lme, ~ Time, at = list(Time = c(0,1,2,3)))
+summary(emm_num)
+pairs(emm_num, adjust = "bonferroni")
+```
+
+## Step 2b: Model with covariates and GSM only
+This step tests the main effect of GSM with and without covariates.
+### Level 1
+AUDIT~ij~ = β~0j~ + β~1j~sex~ij~ + β~2j~ACEs~ij~ + β~3j~Time~ij~ + e~ij~
+```{r}
+gsmOnly.lme <- lmer(AUDIT ~ 1 + SocialMis + (1 | mriID), data = df_long, REML = FALSE, na.action = na.exclude)
+summary(gsmOnly.lme)
+confint(gsmOnly.lme)
+
+gsmCova.lme <- lmer(AUDIT ~ 1 + sex + AdChild + SocialMis + (1 | mriID), data = df_long, REML = FALSE, na.action = na.exclude)
+summary(gsmCova.lme)
+confint(gsmCova.lme)
+```
+
+## Step 3: Conditional growth model with time-invariant covariates
+The unconditional model above with growth curves showed that both intercept and the slope by time were significant. Now let's add time-invariant covariates to the model (i.e., sex and ACE score).
+
+### Level 1
+AUDIT~ij~ = β~0j~ + β~1j~Sex~ij~ + β~2j~AdChild~ij~ + β~3j~Time~ij~ + e~ij~
+
+```{r}
+concova.lme <- lmer(AUDIT ~ 1 + sex + AdChild + Time + (1 | mriID), data = df_long, REML = FALSE, na.action = na.exclude)
+summary(concova.lme)
+concova.coef <- tidy(concova.lme, conf.int = TRUE)
+concova.coef
+confint(concova.lme)
+
+r.squaredGLMM(concova.lme) - r.squaredGLMM(uncon.lme)
+anova(concova.lme, uncon.lme)
+# The main effect of time reains significant, and we also see the main effect of AdChild and its interaction with time. Although sex doesn't have any effects, we still include it in the model since it is related to our variables of interest.
+```
+
+## Step 4: Conditional model with growth curves, time-invariant covariates, and time-varying predictor
+Now let's add the time-varying predictor (SocialMis) to the model, but without random slope in the model.
+
+### Level 1
+AUDIT~ij~ = β~0j~ + β~1j~Sex~ij~ + β~2j~AdChild~ij~ + β~3j~Time~ij~ + e~ij~
+
+### Level 2
+β~3j~ = γ~10~ + γ~11~SocialMis~j~ + r~2j~<br>
+
+### Mixed model
+AUDIT~ij~ = β~0j~ + β~1j~Sex~ij~ + β~2j~AdChild~ij~ + (γ~10~ + γ~11~SocialMis~j~ + r~2j~) * Time~ij~ + u~ij~
+
+```{r}
+df_long <- df_long %>% rename(GSM = SocialMis)
+
+socialMis.lme <- lmer(AUDIT ~ 1 + sex + AdChild + GSM*Time + (1 | mriID), data = df_long, REML = FALSE, na.action = na.exclude)
+summary(socialMis.lme)
+socialMis.coef <- tidy(socialMis.lme, conf.int = TRUE)
+socialMis.coef
+confint(socialMis.lme)
+
+print(simple_slopes(socialMis.lme, pred = "Time", mod1 = GSM))
+tiff('interact_plot_time_socialmis.tiff', width = 5333, height = 5333, res = 800)
+p <- interact_plot(socialMis.lme, pred = "Time", modx = "GSM", interval = TRUE, modx.labels = c('Low', 'Mean', 'High')) + theme_classic()
+print(p)
+dev.off()
+
+p <- interact_plot(socialMis.lme, pred = "Time", modx = "GSM", interval = TRUE, modx.labels = c('Low', 'Mean', 'High')) + theme_classic()
+print(p)
+
+# Define GSM values
+gsm_mean <- mean(df_long$GSM, na.rm = TRUE)
+gsm_sd <- sd(df_long$GSM, na.rm = TRUE)
+gsm_levels <- c(gsm_mean - gsm_sd, gsm_mean, gsm_mean + gsm_sd)
+
+# Estimate simple slopes
+slopes <- emtrends(
+  socialMis.lme,
+  var = "Time",
+  specs = "GSM",
+  at = list(GSM = gsm_levels))
+
+# Pairwise comparisons of slopes
+slope_contrasts <- contrast(slopes, method = "pairwise")
+summary(slope_contrasts)
+
+r.squaredGLMM(socialMis.lme) - r.squaredGLMM(concova.lme)
+anova(concova.lme, socialMis.lme)
+
+df_long <- df_long %>% rename(SocialMis = GSM)
+# SocialMis doesn't have a significant main effect on AUDIT, but it interacts with time, as peopel with a greater SocialMis tend to have a greater increase in AUDIT over time.
+```
+
+## Step 5: Conditional model with growth curves, time-invariant covariates, time-varying predictor, and random slope
+Now let's make the slope to be random across participants.
+```{r}
+randSlope.lme <- lmer(AUDIT ~ 1 + sex + AdChild + SocialMis*Time + (1 + Time | mriID), data = df_long, REML = FALSE, na.action = na.exclude)
+summary(randSlope.lme)
+randSlope.coef <- tidy(randSlope.lme, conf.int = TRUE)
+randSlope.coef
+
+# print(simple_slopes(randSlope.lme, pred = "Time", mod1 = SocialMis))
+# print(interact_plot(randSlope.lme, pred = "Time", modx = SocialMis, interval = TRUE))
+
+anova(socialMis.lme, randSlope.lme)
+# Although adding random slope works, we didn't do it in the following models because oflater convergence issues.
+```
+
+## Step 6a: Full model
+Now let's add the inhibition-related moderators one by one to the model. This is now a conditional model with growth curves, time-invariant covariates, time-varying predictor, time-invariant inhibition-related moderators, and random intercept.
+
+### Level 1
+AUDIT~ij~ = β~0j~ + β~1j~Sex~ij~ + β~2j~AdChild~ij~ + β~3j~Time~ij~ + e~ij~
+
+### Level 2
+β~3j~ = γ~10~ + γ~11~SocialMis~j~ + γ~12~Inhibition~j~ + r~2j~<br>
+
+### Mixed model
+AUDIT~ij~ = β~0j~ + β~1j~Sex~ij~ + β~2j~AdChild~ij~ + (γ~10~ + γ~11~SocialMis~j~ + γ~12~Inhibition~j~ + r~2j~) * Time~ij~ + u~ij~
+```{r}
+df_long <- df_long %>% rename(GSM = SocialMis)
+
+moderators <- c("GoAcc", "GoRT", "StopAcc", "SSD", "SSRT", "pes_pse_psc", "pea_pse_psc", "ssgo_auditory", "ssgo_default", "ssgo_memoryRetrieval", "ssgo_visual", "fsgo_salience", "fsgo_subcortical")
+#These variables are not examined becasue some of them have missing values, which can make different observations in models, then make the models not comparable. Also, they are not our variables of interest.
+#"SUPPS_Impulsive", "BIS_Impulsive", "CDRISC_Resilience", "stateAnxiety", "traitAnxiety", "BDI_depression"
+
+for (mod_var in moderators) {
+  # Create model formula
+  formula_str <- paste("AUDIT ~ 1 + sex + AdChild + GSM *", mod_var, "* Time + (1  | mriID)")
+  model_formula <- as.formula(paste(formula_str, collapse = " "))
+
+  cat("\nRunning model with moderator:", mod_var, "\n")
+  full.lme <- lmer(model_formula, data = df_long, REML = FALSE, na.action = na.exclude)
+  print(summary(full.lme))
+  full.coef <- tidy(full.lme, conf.int = TRUE)
+  print(full.coef)
+  confint <- confint(full.lme)
+  print(confint)
+
+  delta_r2 <- r.squaredGLMM(full.lme) - r.squaredGLMM(socialMis.lme)
+  print(delta_r2)
+  model_compare <- anova(socialMis.lme, full.lme)
+  print(model_compare)
+
+  # Use tidy eval to pass variable names
+  suppressWarnings(print(simple_slopes(full.lme, pred = "Time", levels=list('Time'=c(0, 1, 2, 3, 'sstest')))))
+  print(interact_plot(full.lme, pred = "Time", modx = "GSM", mod2 = !!sym(mod_var), interval = TRUE))}
+df_long <- df_long %>% rename(SocialMis = GSM)
+```
+
+## Step 6b: Full model controlling for StopAcc and GoRT
+```{r}
+df_long <- df_long %>% rename(GSM = SocialMis)
+
+moderators <- c("SUPPS_Impulsive", "BIS_Impulsive", "CDRISC_Resilience", "stateAnxiety", "traitAnxiety", "BDI_depression", "GoAcc", "GoRT", "StopAcc", "SSD", "SSRT", "pes_pse_psc", "pea_pse_psc", "ssgo_auditory", "ssgo_default", "ssgo_memoryRetrieval", "ssgo_visual", "fsgo_salience", "fsgo_subcortical")
+
+for (mod_var in moderators) {
+  # Create model formula
+  formula_str <- paste("AUDIT ~ 1 + sex + AdChild + StopAcc + GoRT + GSM *", mod_var, "* Time + (1 | mriID)")
+  model_formula <- as.formula(paste(formula_str, collapse = " "))
+
+  cat("\nRunning model with moderator:", mod_var, "\n")
+  full.lme <- lmer(model_formula, data = df_long, REML = FALSE, na.action = na.exclude)
+  print(summary(full.lme))
+  full.coef <- tidy(full.lme, conf.int = TRUE)
+  print(full.coef)
+
+  # model_compare <- anova(socialMis.lme, full.lme)
+  # print(model_compare)
+
+  # Use tidy eval to pass variable names
+  # print(simple_slopes(full.lme, pred = "Time", levels=list('Time'=c(0, 1, 2, 3, 'sstest'))))
+  # print(interact_plot(full.lme, pred = "Time", modx = "GSM", mod2 = !!sym(mod_var), interval = TRUE))
+}
+df_long <- df_long %>% rename(SocialMis = GSM)
+```
+
+## Slope contrasts for some full models
+### SSRT
+```{r}
+# There was no significant moderation of SSRT, but we still plot it.
+df_long <- df_long %>% rename(GSM = SocialMis)
+full.lme <- lmer(AUDIT ~ 1 + sex + AdChild + GSM * SSRT * Time + (1 | mriID), data = df_long, REML = FALSE, na.action = na.exclude)
+
+# Calculate mean and SD
+pre_mean <- mean(df_long$GSM, na.rm = TRUE)
+pre_sd <- sd(df_long$GSM, na.rm = TRUE)
+mod_mean <- mean(df_long$SSRT, na.rm = TRUE)
+mod_sd <- sd(df_long$SSRT, na.rm = TRUE)
+
+# Define moderator levels and then compare simple slopes
+emtr <- emtrends(full.lme, var = "Time", specs = c("GSM", "SSRT"),
+  at = list(GSM = c(pre_mean - pre_sd, pre_mean, pre_mean + pre_sd), SSRT = c(mod_mean - mod_sd, mod_mean, mod_mean + mod_sd)))
+print(emtr)
+contrast(emtr, method = "pairwise")
+
+# Plot and save simple slopes
+print(simple_slopes(full.lme, pred = "Time", levels=list('Time'=c(0, 1, 2, 3, 'sstest'))))
+# png('interact_plot_time_socialmis_ssrt.png', width = 1600, height = 1067, res = 300)
+tiff('interact_plot_time_socialmis_ssrt.tiff', width = 6000, height = 4000, res = 800)
+p <- interact_plot(full.lme, pred = "Time", modx = GSM, mod2 = SSRT, interval = TRUE, modx.labels = c('Low', 'Mean', 'High'), mod2.labels = c('Fast SSRT', 'Mean SSRT', 'Slow SSRT')) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"), axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+# p <- interact_plot(full.lme, pred = "Time", modx = GSM, mod2 = SSRT, interval = TRUE, modx.labels = c('Low', 'Mean', 'High'), mod2.values = c(-1, 1), mod2.labels = c('Fast SSRT', 'Slow SSRT')) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"), axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+print(p)
+dev.off()
+p <- interact_plot(full.lme, pred = "Time", modx = GSM, mod2 = SSRT, interval = TRUE, modx.labels = c('Low', 'Mean', 'High'), mod2.labels = c('Fast SSRT', 'Mean SSRT', 'Slow SSRT')) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"), axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+print(p)
+
+p <- interact_plot(full.lme, pred = "Time", modx = SSRT, interval = TRUE, modx.labels = c('Fast', 'Mean', 'Slow')) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"),
+    axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+print(p)
+
+p <- interact_plot(full.lme, pred = "GSM", modx = SSRT, interval = TRUE, modx.labels = c('Fast', 'Mean', 'Slow')) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"),
+    axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+print(p)
+df_long <- df_long %>% rename(SocialMis = GSM)
+```
+
+### PES
+```{r}
+# There was no significant moderation of PES, but we still plot it.
+df_long <- df_long %>% rename(GSM = SocialMis)
+df_long <- df_long %>% rename(PES = pes_pse_psc)
+full.lme <- lmer(AUDIT ~ 1 + sex + AdChild + GSM * PES * Time + (1 | mriID), data = df_long, REML = FALSE, na.action = na.exclude)
+
+# Calculate mean and SD
+pre_mean <- mean(df_long$GSM, na.rm = TRUE)
+pre_sd <- sd(df_long$GSM, na.rm = TRUE)
+mod_mean <- mean(df_long$PES, na.rm = TRUE)
+mod_sd <- sd(df_long$PES, na.rm = TRUE)
+
+# Define moderator levels and compare simple slopes
+emtr <- emtrends(full.lme, var = "Time", specs = c("GSM", "PES"),
+  at = list(GSM = c(pre_mean - pre_sd, pre_mean, pre_mean + pre_sd), PES = c(mod_mean - mod_sd, mod_mean, mod_mean + mod_sd)))
+print(emtr)
+contrast(emtr, method = "pairwise")
+
+# Plot and save simple slopes
+print(simple_slopes(full.lme, pred = "Time", levels=list('Time'=c(0, 1, 2, 3, 'sstest'))))
+tiff('interact_plot_time_socialmis_pes.tiff', width = 6000, height = 4000, res = 800)
+p <- interact_plot(full.lme, pred = "Time", modx = GSM, mod2 = PES, interval = TRUE, modx.labels = c("Low", "Mean", "High"), mod2.labels = c('Low PES', 'Mean PES', 'High PES')) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"), axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+print(p)
+dev.off()
+p <- interact_plot(full.lme, pred = "Time", modx = GSM, mod2 = PES, interval = TRUE, modx.labels = c("Low", "Mean", "High"), mod2.labels = c('Low PES', 'Mean PES', 'High PES')) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"), axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+print(p)
+df_long <- df_long %>% rename(SocialMis = GSM)
+df_long <- df_long %>% rename(pes_pse_psc = PES)
+```
+
+### fsgo_subcortical
+```{r}
+df_long <- df_long %>% rename(GSM = SocialMis, FSGOSub = fsgo_subcortical)
+full.lme <- lmer(AUDIT ~ 1 + sex + AdChild + GSM * FSGOSub * Time + (1 | mriID), data = df_long, REML = FALSE, na.action = na.exclude)
+
+# Calculate mean and SD
+pre_mean <- mean(df_long$GSM, na.rm = TRUE)
+pre_sd <- sd(df_long$GSM, na.rm = TRUE)
+mod_mean <- mean(df_long$FSGOSub, na.rm = TRUE)
+mod_sd <- sd(df_long$FSGOSub, na.rm = TRUE)
+
+# Define moderator levels and compare simple slopes
+emtr <- emtrends(full.lme, var = "Time", specs = c("GSM", "FSGOSub"),
+  at = list(GSM = c(pre_mean - pre_sd, pre_mean, pre_mean + pre_sd), FSGOSub = c(mod_mean - mod_sd, mod_mean, mod_mean + mod_sd)))
+print(emtr)
+contrast(emtr, method = "pairwise")
+
+# Plot and save simple slopes
+print(simple_slopes(full.lme, pred = "Time", levels=list('Time'=c(0, 1, 2, 3, 'sstest'))))
+# png('interact_plot_time_socialmis_fsgo_subcortical.png', width = 1600, height = 1067, res = 300)
+tiff('interact_plot_time_socialmis_fsgo_subcortical.tiff', width = 6000, height = 4000, res = 800)
+p <- interact_plot(full.lme, pred = "Time", modx = GSM, mod2 = FSGOSub, interval = TRUE, modx.labels = c("Low", "Mean", "High"), mod2.labels = c('Low Subcortical Activation', 'Mean Subcortical Activation', 'High Subcortical Activation')) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"), axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+# p <- interact_plot(full.lme, pred = "Time", modx = GSM, mod2 = FSGOSub, interval = TRUE, modx.labels = c('Low', 'Mean', 'High'), mod2.values = c(-1, 1), mod2.labels = c('Low Subcortical Activation', 'High Subcortical Activation')) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"), axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+print(p)
+dev.off()
+p <- interact_plot(full.lme, pred = "Time", modx = GSM, mod2 = FSGOSub, interval = TRUE, modx.labels = c("Low", "Mean", "High"), mod2.labels = c('Low Subcortical Activation', 'Mean Subcortical Activation', 'High Subcortical Activation')) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"), axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+print(p)
+
+p <- interact_plot(full.lme, pred = "FSGOSub", modx = Time, interval = TRUE) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"),
+    axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+print(p)
+p <- interact_plot(full.lme, pred = "GSM", modx = FSGOSub, interval = TRUE, modx.labels = c("Low subcortical activation", "Mean subcortical activation", "High subcortical activation")) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"),
+    axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+print(p)
+p <- interact_plot(full.lme, pred = "Time", modx = FSGOSub, interval = TRUE, modx.labels = c("Low subcortical activation", "Mean subcortical activation", "High subcortical activation")) + theme(panel.grid = element_blank(), axis.line = element_line(color = "black"),
+    axis.line.y.right = element_blank(), axis.line.x.top = element_blank(), axis.ticks = element_line(color = "black"))
+print(p)
+df_long <- df_long %>% rename(SocialMis = GSM, fsgo_subcortical = FSGOSub)
+
+# Plot the distributions of FS- and Go-subcortical activations
+mean_fs_subcortical <- mean(dfUnscaled$fs_subcortical, na.rm = TRUE)
+mean_go_subcortical <- mean(dfUnscaled$go_subcortical, na.rm = TRUE)
+ggplot(dfUnscaled, aes(x = fs_subcortical)) +
+  geom_density(aes(fill = "fs_subcortical"), alpha = 0.5) +
+  geom_density(aes(x = go_subcortical, fill = "go_subcortical"), alpha = 0.5) +
+  geom_vline(xintercept = mean_fs_subcortical, color = "#377eb8", linetype = "dashed", linewidth = 1) +
+  geom_vline(xintercept = mean_go_subcortical, color = "#e41a1c", linetype = "dashed", linewidth = 1) +
+  labs(title = "Subcortical activations in FS vs. Go", x = "Activations", y = "Density", fill = "Variable") +
+  scale_fill_manual(name = NULL, values = c("fs_subcortical" = "#377eb8", "go_subcortical" = "#e41a1c"),
+                    labels = c("fs_subcortical" = "FS subcortical activation", "go_subcortical" = "Go subcortical activation")) +
+  theme_classic()
+```
+
+# Supplementary analyses
+## Run a one-sample t-test to examine if network activations (extracted from SS-FS map) differ from zero
+```{r}
+# ss_vars <- c("ss_somatomotorHand", "ss_somatomotorMouth", "ss_cinguloOpercularTaskControl", "ss_auditory", "ss_default", "ss_memoryRetrieval", "ss_visual", "ss_frontoParietalTaskControl", "ss_salience", "ss_subcortical", "ss_ventralAttention", "ss_dorsalAttention", "ss_cerebellar")
+# fs_vars <- c("fs_somatomotorHand", "fs_somatomotorMouth", "fs_cinguloOpercularTaskControl", "fs_auditory", "fs_default", "fs_memoryRetrieval", "fs_visual", "fs_frontoParietalTaskControl", "fs_salience", "fs_subcortical", "fs_ventralAttention", "fs_dorsalAttention", "fs_cerebellar")
+# ssgo_vars <- c("ssgo_somatomotorHand", "ssgo_somatomotorMouth", "ssgo_cinguloOpercularTaskControl", "ssgo_auditory", "ssgo_default", "ssgo_memoryRetrieval", "ssgo_visual", "ssgo_frontoParietalTaskControl", "ssgo_salience", "ssgo_subcortical", "ssgo_ventralAttention", "ssgo_dorsalAttention", "ssgo_cerebellar")
+fsgo_vars <- c("fsgo_somatomotorHand", "fsgo_somatomotorMouth", "fsgo_cinguloOpercularTaskControl", "fsgo_auditory", "fsgo_default", "fsgo_memoryRetrieval", "fsgo_visual", "fsgo_frontoParietalTaskControl", "fsgo_salience", "fsgo_subcortical", "fsgo_ventralAttention", "fsgo_dorsalAttention", "fsgo_cerebellar")
+# ssfs_vars <- c("ssfs_somatomotorHand", "ssfs_somatomotorMouth", "ssfs_cinguloOpercularTaskControl", "ssfs_auditory", "ssfs_default", "ssfs_memoryRetrieval", "ssfs_visual", "ssfs_frontoParietalTaskControl", "ssfs_salience", "ssfs_subcortical", "ssfs_ventralAttention", "ssfs_dorsalAttention", "ssfs_cerebellar")
+# fsss_vars <- c("fsss_somatomotorHand", "fsss_somatomotorMouth", "fsss_cinguloOpercularTaskControl", "fsss_auditory", "fsss_default", "fsss_memoryRetrieval", "fsss_visual", "fsss_frontoParietalTaskControl", "fsss_salience", "fsss_subcortical", "fsss_ventralAttention", "fsss_dorsalAttention", "fsss_cerebellar")
+# contrastNetworks <- c(ssgo_vars, ssfs_vars, fsss_vars)
+#
+for (v in fsgo_vars) {
+  cat("\nOne-sample t-test for", v, ":\n")
+  print(t.test(dfUnscaled[[v]], mu = 0, na.rm = TRUE))}
+#
+# # Partial correlation
+# for (v in fsgo_vars) {
+#   cat("\nPartial correlation between", v, " and PES, controlling for GoAcc:\n")
+#   print(pcor.test(dfUnscaled$pes_pse_psc, dfUnscaled[[v]], dfUnscaled$GoRT))}
+```
+
+## Run a MANOVA to test the differences in network activations during SS vs FS, then use DA to see which networks contribute to the differences the most.
+```{r}
+# network_names <- c(
+#   "somatomotorHand", "somatomotorMouth", "cinguloOpercularTaskControl", "auditory", "default",
+#   "memoryRetrieval", "visual", "frontoParietalTaskControl", "salience", "subcortical",
+#   "ventralAttention", "dorsalAttention", "cerebellar")
+#
+# # Order columns: ss_*, then fs_*
+# ss_cols <- paste0("ss_", network_names)
+# fs_cols <- paste0("fs_", network_names)
+# Y <- as.matrix(dfUnscaled[, c(ss_cols, fs_cols)])
+#
+# condition <- factor(rep(c("ss", "fs"), each = 13))
+# network <- factor(rep(network_names, 2), levels = network_names)
+#
+# manova_res <- manova(Y ~ 1)
+# within <- data.frame(condition, network)
+# summary(Anova(manova_res, idata = within, idesign = ~condition * network, type = "III"), multivariate = TRUE)
+```
+
+### Post-hoc analyses with LDA for MANOVA
+```{r}
+# # 1. Reshape to long format
+# dfUnscaled_long <- dfUnscaled %>%
+#   mutate(Subj = row_number()) %>%
+#   pivot_longer(
+#     cols = c(ss_cols, fs_cols),
+#     names_to = c("condition", "network"),
+#     names_pattern = "(ss|fs)_(.*)",
+#     values_to = "activation")
+#
+# # 2. Fit the model
+# fit <- lm(activation ~ condition * network + Subj, data = dfUnscaled_long)
+#
+# # 3. Post hoc pairwise comparisons
+# emm <- emmeans(fit, ~ condition | network)
+# pairs(emm, adjust = "bonferroni", reverse = TRUE)
+#
+# # Prepare data for LDA: stack ss_ and fs_ rows
+# ss_data <- dfUnscaled[, ss_cols]
+# fs_data <- dfUnscaled[, fs_cols]
+# # Ensure column names match
+# colnames(ss_data) <- colnames(fs_data) <- network_names
+#
+# # Stack the data
+# lda_df <- rbind(
+#   data.frame(condition = "ss", ss_data),
+#   data.frame(condition = "fs", fs_data)
+# )
+# lda_df$condition <- factor(lda_df$condition)
+#
+# # Run LDA
+# lda_res <- lda(condition ~ ., data = lda_df)
+# print(lda_res)
+#
+# # Get the coefficients for the first discriminant function
+# loadings <- lda_res$scaling[, 1]
+# # Sort by absolute value (descending)
+# contribution <- sort(abs(loadings), decreasing = TRUE)
+# print(contribution)
+```
+
+### Post-hoc analyses with Press's Q for MANOVA
+```{r}
+# # Function to compute Press's Q
+# press_q <- function(n, correct, k) {
+#   acc <- correct / n
+#   q <- n * ((acc - 1/k)^2) / ((1 - 1/k) * (1/k))
+#   pval <- 1 - pchisq(q, df = 1)
+#   list(Q = q, p.value = pval)}
+#
+# results <- data.frame(network = character(), accuracy = numeric(), Q = numeric(), p.value = numeric())
+#
+# for (net in network_names) {
+#   # Prepare data
+#   lda_df <- rbind(
+#     data.frame(condition = "ss", value = dfUnscaled[[paste0("ss_", net)]]),
+#     data.frame(condition = "fs", value = dfUnscaled[[paste0("fs_", net)]])
+#   )
+#   lda_df$condition <- factor(lda_df$condition)
+#   lda_df <- na.omit(lda_df)
+#
+#   # LDA
+#   lda_res <- lda(condition ~ value, data = lda_df)
+#   pred <- predict(lda_res)$class
+#   correct <- sum(pred == lda_df$condition)
+#   n <- nrow(lda_df)
+#
+#   # Press's Q
+#   pq <- press_q(n, correct, k = 2)
+#
+#   results <- rbind(results, data.frame(
+#     network = net,
+#     accuracy = correct / n,
+#     Q = pq$Q,
+#     p.value = pq$p.value))}
+#
+# print(results)
+```
+
+## ss and fs activation distributions
+```{r}
+# # Calculate means for cinguloOpercularTaskControl
+# mean_ss1 <- mean(dfUnscaled$ss_cinguloOpercularTaskControl, na.rm = TRUE)
+# mean_fs1 <- mean(dfUnscaled$fs_cinguloOpercularTaskControl, na.rm = TRUE)
+#
+# p1 <- ggplot(dfUnscaled) +
+#   geom_density(aes(x = ss_cinguloOpercularTaskControl, fill = "ss"), alpha = 0.5) +
+#   geom_density(aes(x = fs_cinguloOpercularTaskControl, fill = "fs"), alpha = 0.5) +
+#   geom_vline(xintercept = mean_ss1, color = "#377eb8", linetype = "dashed", size = 1) +
+#   geom_vline(xintercept = mean_fs1, color = "#e41a1c", linetype = "dashed", size = 1) +
+#   labs(title = "Distribution: cinguloOpercularTaskControl", x = "Activation", y = "Density", fill = "Condition") +
+#   theme_classic()
+#
+# # Calculate means for subcortical
+# mean_ss2 <- mean(dfUnscaled$ss_subcortical, na.rm = TRUE)
+# mean_fs2 <- mean(dfUnscaled$fs_subcortical, na.rm = TRUE)
+#
+# p2 <- ggplot(dfUnscaled) +
+#   geom_density(aes(x = ss_subcortical, fill = "ss"), alpha = 0.5) +
+#   geom_density(aes(x = fs_subcortical, fill = "fs"), alpha = 0.5) +
+#   geom_vline(xintercept = mean_ss2, color = "#377eb8", linetype = "dashed", size = 1) +
+#   geom_vline(xintercept = mean_fs2, color = "#e41a1c", linetype = "dashed", size = 1) +
+#   labs(title = "Distribution: subcortical", x = "Activation", y = "Density", fill = "Condition") +
+#   theme_classic()
+#
+# # Calculate means for ventralAttention
+# mean_ss3 <- mean(dfUnscaled$ss_ventralAttention, na.rm = TRUE)
+# mean_fs3 <- mean(dfUnscaled$fs_ventralAttention, na.rm = TRUE)
+#
+# p3 <- ggplot(dfUnscaled) +
+#   geom_density(aes(x = ss_ventralAttention, fill = "ss"), alpha = 0.5) +
+#   geom_density(aes(x = fs_ventralAttention, fill = "fs"), alpha = 0.5) +
+#   geom_vline(xintercept = mean_ss3, color = "#377eb8", linetype = "dashed", size = 1) +
+#   geom_vline(xintercept = mean_fs3, color = "#e41a1c", linetype = "dashed", size = 1) +
+#   labs(title = "Distribution: ventralAttention", x = "Activation", y = "Density", fill = "Condition") +
+#   theme_classic()
+#
+# ggarrange(p1, p2, p3, ncol = 1, nrow = 3, common.legend = TRUE, legend = "right")
+```
+
+### ANOVA compares networks based on the medium of AUDIT and GSM
+```{r}
+# dfUnscaled$AUDIT_ave <- rowMeans(dfUnscaled[, c("AUDIT_T0", "AUDIT_T1", "AUDIT_T2", "AUDIT_T3")], na.rm = TRUE)
+# audit_medium <- median(dfUnscaled$AUDIT_ave, na.rm = TRUE)
+# dfUnscaled$AUDIT_ave_level <- ifelse(dfUnscaled$AUDIT_ave >= audit_medium, 1, 0)
+# dfUnscaled$SocialMis_ave <- rowMeans(dfUnscaled[, c("SocialMis_T0", "SocialMis_T1", "SocialMis_T2", "SocialMis_T3")], na.rm = TRUE)
+# socialmis_medium <- median(dfUnscaled$SocialMis_ave, na.rm = TRUE)
+# dfUnscaled$SocialMis_ave_level <- ifelse(dfUnscaled$SocialMis_ave >= socialmis_medium, 1, 0)
+#
+# table(dfUnscaled$AUDIT_ave_level)
+# table(dfUnscaled$SocialMis_ave_level)
+#
+# # Create the group column
+# dfUnscaled$group <- with(dfUnscaled, ifelse(AUDIT_ave_level == 1 & SocialMis_ave_level == 1, "high_audit_high_gsm",
+#                              ifelse(AUDIT_ave_level == 1 & SocialMis_ave_level == 0, "high_audit_lowgsm",
+#                              ifelse(AUDIT_ave_level == 0 & SocialMis_ave_level == 1, "low_audit_high_gsm",
+#                              "low_audit_low_gsm"))))
+#
+# # Count the number of each group
+# table(dfUnscaled$group)
+#
+# # ANOVA for cinguloOpercularTaskControl
+# anova_cingulo <- aov(cinguloOpercularTaskControl ~ group, data = dfUnscaled)
+# summary(anova_cingulo)
+# pw_cingulo <- pairwise.t.test(dfUnscaled$cinguloOpercularTaskControl, dfUnscaled$group, p.adjust.method = "bonferroni")
+# print(pw_cingulo)
+#
+# # ANOVA for subcortical
+# anova_subcortical <- aov(subcortical ~ group, data = dfUnscaled)
+# summary(anova_subcortical)
+# pw_subcortical <- pairwise.t.test(dfUnscaled$subcortical, dfUnscaled$group, p.adjust.method = "bonferroni")
+# print(pw_subcortical)
+#
+# # ANOVA for ventralAttention
+# anova_ventral <- aov(ventralAttention ~ group, data = dfUnscaled)
+# summary(anova_ventral)
+# pw_ventralAttention <- pairwise.t.test(dfUnscaled$ventralAttention, dfUnscaled$group, p.adjust.method = "bonferroni")
+# print(pw_ventralAttention)
+#
+# # Helper function to plot
+# plot_bar <- function(var, ylab) {
+#   dfUnscaled %>%
+#     group_by(group) %>%
+#     summarise(mean = mean(.data[[var]], na.rm = TRUE),
+#               se = sd(.data[[var]], na.rm = TRUE)/sqrt(n())) %>%
+#     ggplot(aes(x = group, y = mean, fill = group)) +
+#     geom_bar(stat = "identity", color = "black", width = 0.7) +
+#     geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.2) +
+#     labs(title = ylab, x = "Group", y = "Mean Activation") + theme_classic() +
+#     theme(legend.position = "none")}
+#
+# p1 <- plot_bar("cinguloOpercularTaskControl", "Cingulo Opercular Task Control")
+# p2 <- plot_bar("subcortical", "Subcortical")
+# p3 <- plot_bar("ventralAttention", "Ventral Attention")
+# ggarrange(p1, p2, p3, ncol = 1, nrow = 3)
+```
