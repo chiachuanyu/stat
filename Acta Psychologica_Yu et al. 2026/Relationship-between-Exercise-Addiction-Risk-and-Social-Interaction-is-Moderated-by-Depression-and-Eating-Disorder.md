@@ -466,7 +466,7 @@ p <- p + scale_fill_gradientn(colours = col1(10), limits = c(-1, 1),
 p
 ```
 
-![](/Users/chia-chuanyu/Chuan's%20Macbook%20Pro/My%20Ph.D/UT%20Austin/Research/Dissertation/publications/study1_onlineSurvey/Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfm/corr-plot-1.png)<!-- -->
+![](Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfmcorr-plot-1.png)<!-- -->
 
 ``` r
 ggsave(filename = "correlation_plot.png", plot = p, width = 7, height = 7, dpi = 300)
@@ -601,7 +601,7 @@ p1 <- interact_plot(model.ss, pred = "mossss_overallSupportIndex", modx = "edeqs
 p1
 ```
 
-![](/Users/chia-chuanyu/Chuan's%20Macbook%20Pro/My%20Ph.D/UT%20Austin/Research/Dissertation/publications/study1_onlineSurvey/Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfmunnamed-chunk-7-1.png)<!-- -->
 
 # Hypothesis testing for social reward (SR)
 
@@ -703,7 +703,7 @@ p2 <- interact_plot(model.sr, pred = "srq", modx = "edeqs",
 p2
 ```
 
-![](/Users/chia-chuanyu/Chuan's%20Macbook%20Pro/My%20Ph.D/UT%20Austin/Research/Dissertation/publications/study1_onlineSurvey/Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfmunnamed-chunk-8-1.png)<!-- -->
 
 # Hypothesis testing for fear of missing out (fomos)
 
@@ -805,7 +805,7 @@ p3 <- interact_plot(model.fomos, pred = "fomos", modx = "edeqs",
 p3
 ```
 
-![](/Users/chia-chuanyu/Chuan's%20Macbook%20Pro/My%20Ph.D/UT%20Austin/Research/Dissertation/publications/study1_onlineSurvey/Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfmunnamed-chunk-9-1.png)<!-- -->
 
 # Hypothesis testing for discrimination (dis)
 
@@ -909,7 +909,7 @@ p4 <- interact_plot(model.dis, pred = "everyDiscrimiS", modx = "edeqs",
 p4
 ```
 
-![](/Users/chia-chuanyu/Chuan's%20Macbook%20Pro/My%20Ph.D/UT%20Austin/Research/Dissertation/publications/study1_onlineSurvey/Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfmunnamed-chunk-10-1.png)<!-- -->
 
 # Combine all regression plots
 
@@ -918,7 +918,7 @@ combined_plot <- (p1 | p2) / (p3 | p4) +plot_annotation(tag_levels = "a", tag_pr
 combined_plot
 ```
 
-![](/Users/chia-chuanyu/Chuan's%20Macbook%20Pro/My%20Ph.D/UT%20Austin/Research/Dissertation/publications/study1_onlineSurvey/Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfmunnamed-chunk-11-1.png)<!-- -->
 
 ``` r
 ggsave("interaction_plots.png", plot = combined_plot, width = 10,height = 7, units = "in", dpi = 300)

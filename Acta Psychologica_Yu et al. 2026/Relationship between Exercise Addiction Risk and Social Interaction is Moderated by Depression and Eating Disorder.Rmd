@@ -3,13 +3,14 @@ title: "Relationship between Exercise Addiction Risk and Social Interaction is M
 author: "Chia-Chuan Yu, Ph.D."
 date: "`r Sys.Date()`"
 output:
-  html_document:
-    toc: true
-    toc_float: true
+  rmarkdown::github_document
+  # html_document:
+    # toc: true
+    # toc_float: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.path = "Relationship-between-Exercise-Addiction-Risk-and-Social-Interaction-is-Moderated-by-Depression-and-Eating-Disorder_files/figure-gfm")
 ```
 
 # Introduction
